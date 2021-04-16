@@ -155,8 +155,26 @@
 //   }
 // }
 
-// let myp5 = new p5();
+const s = ( p ) => {
 
+    let x = 100; 
+    let y = 100;
+  
+    p.setup = function() {
+      p.createCanvas(700, 410);
+    };
+  
+    p.draw = function() {
+      p.background(0);
+      p.fill(255);
+      p.rect(x,y,50,50);
+    };
+  };
+  
+  let myp5 = new p5(s);
+
+  
+  
 const objects = [];
 
 function setup() {
@@ -168,6 +186,7 @@ function setup() {
     objects.push(new Obj(shapes.SPHERE, createVector(-100, 0, 0), createVector(0, 0, 0), 50));
     objects.push(new Obj(shapes.SPHERE, createVector(100, 0, 0), createVector(0, 0, 0), 25));
 }
+
 function draw() {
     background(127);
     
@@ -188,29 +207,45 @@ const shapes = {
     SPHERE: "sphere",
 }
 
+const funs = {
+//     PLANE: plane(),
+    SPHERE: p5.sphere,
+}
+
 class Obj {
     // constructor(s, x, y, z, vx, vy, vz) {
     //     this.shape = s;
     //     this.position = createVector(x, y, z);
     //     this.velocity = createVector(vx, vy, vz);
     // }
-    constructor(shp, pos, vel, sz) {
-        this.shape = shp;  // one of shapes
+
+    // constructor(shape, pos, vel, sz) {
+    //     this.shape = shape;  // one of shapes
+    //     this.position = pos;  // p5.Vector
+    //     this.velocity = vel;  // p5.Vector
+    //     this.size = sz;       // parameters
+    // }
+
+    constructor(shape, pos, vel, ...args) {
+        this.shape = shape;  // one of shapes
         this.position = pos;  // p5.Vector
         this.velocity = vel;  // p5.Vector
-        this.size = sz;       // parameters
+        this.args = args;     // arguments, size or radius, etc.
     }
 
     render() {
-        switch (this.shape) {
-            case shapes.SPHERE:
-                push();
-                translate(this.position);
-                sphere(this.size);
-                pop();
-                break;
-            default:
-                break;
-        }
+        push();
+        translate(this.position);
+        console.log(funs);
+        console.log(funs[shapes.SPHERE]);
+        funs[SPHERE](...this.args);
+        // switch (this.shape) {
+        //     case shapes.SPHERE:
+        //         sphere(...this.args);
+        //         break;
+        //     default:
+        //         break;
+        // }
+        pop();
     }
 }
