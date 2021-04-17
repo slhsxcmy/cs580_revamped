@@ -154,26 +154,6 @@
 //     return (-this.d - this.normal.dot(Q)) / this.normal.dot(v);
 //   }
 // }
-
-const s = ( p ) => {
-
-    let x = 100; 
-    let y = 100;
-  
-    p.setup = function() {
-      p.createCanvas(700, 410);
-    };
-  
-    p.draw = function() {
-      p.background(0);
-      p.fill(255);
-      p.rect(x,y,50,50);
-    };
-  };
-  
-  let myp5 = new p5(s);
-
-  
   
 const objects = [];
 
@@ -183,8 +163,11 @@ function setup() {
     noStroke();
     ambientMaterial(255);
 
-    objects.push(new Obj(shapes.SPHERE, createVector(-100, 0, 0), createVector(0, 0, 0), 50));
-    objects.push(new Obj(shapes.SPHERE, createVector(100, 0, 0), createVector(0, 0, 0), 25));
+    objects.push(new Sphere(createVector(-100, 0, 0), createVector(0, 1, 1), 50));
+    objects.push(new Sphere(createVector(100, 0, 0), createVector(0, -1, -1), 25));
+    console.log(objects[0].constructor === Sphere);  // or instanceof
+    console.log(objects[0].constructor === Box);
+    console.log(objects[0].constructor === Obj);
 }
 
 function draw() {
@@ -195,57 +178,41 @@ function draw() {
 
     for (obj of objects) {
         obj.render();
+        obj.move();
     }
-}
-
-const shapes = {
-    PLANE: "plane",
-    BOX: "box",
-    CYLINDER: "cylinder",
-    CONE: "cone",
-    TORUS: "torus",
-    SPHERE: "sphere",
-}
-
-const funs = {
-//     PLANE: plane(),
-    SPHERE: p5.sphere,
 }
 
 class Obj {
-    // constructor(s, x, y, z, vx, vy, vz) {
-    //     this.shape = s;
-    //     this.position = createVector(x, y, z);
-    //     this.velocity = createVector(vx, vy, vz);
-    // }
-
-    // constructor(shape, pos, vel, sz) {
-    //     this.shape = shape;  // one of shapes
-    //     this.position = pos;  // p5.Vector
-    //     this.velocity = vel;  // p5.Vector
-    //     this.size = sz;       // parameters
-    // }
-
-    constructor(shape, pos, vel, ...args) {
-        this.shape = shape;  // one of shapes
+    constructor(pos, vel, ...args) {
         this.position = pos;  // p5.Vector
         this.velocity = vel;  // p5.Vector
-        this.args = args;     // arguments, size or radius, etc.
+        this.args     = args;     // arguments, size or radius, etc.
     }
 
     render() {
-        push();
-        translate(this.position);
-        console.log(funs);
-        console.log(funs[shapes.SPHERE]);
-        funs[SPHERE](...this.args);
-        // switch (this.shape) {
-        //     case shapes.SPHERE:
-        //         sphere(...this.args);
-        //         break;
-        //     default:
-        //         break;
-        // }
-        pop();
+        push();  // save camera
+        translate(this.position);  // move camera
+        switch (this.constructor) {  // render based on type
+            case Sphere:    sphere   (...this.args); break;
+            case Box:       box      (...this.args); break;
+            case Plane:     plane    (...this.args); break;
+            case Cylinder:  cylinder (...this.args); break;
+            case Cone:      cone     (...this.args); break;
+            case Torus:     torus    (...this.args); break;
+            default:                                break;
+        }
+        pop();  // restore camera
+    }
+
+    move() {
+        this.position.add(this.velocity);
     }
 }
+
+class Sphere extends Obj {}
+class Box extends Obj {}
+class Plane extends Obj {}
+class Cylinder extends Obj {}
+class Cone extends Obj {}
+class Torus extends Obj {}
+  
