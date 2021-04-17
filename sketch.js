@@ -165,11 +165,15 @@ function setup() {
     noStroke();
     ambientMaterial(255);
 
-    //objects.push(new Obj(shapes.SPHERE, createVector(-100, -25, 0), createVector(1, 0, 0), 25));
+    objects.push(new Obj(shapes.SPHERE, createVector(-100, 25, 0), createVector(1, 0, 0), 25));
     //objects.push(new Obj(shapes.SPHERE, createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
-    objects.push(new Obj(shapes.BOX, createVector(-100, 0, 0), createVector(0, 0, 0), 25));
+    //objects.push(new Obj(shapes.BOX, createVector(100, 0, 100), createVector(0, 0, -1), 25));
     objects.push(new Obj(shapes.BOX, createVector(100, 0, 0), createVector(0, 0, 0), 25));
+
+    //objects.push(new Obj(shapes.PLANE, createVector(100, -25, 0), createVector(0, 0, 0), 25));
+
+
 }
 function draw() {
     background(127);
@@ -177,14 +181,26 @@ function draw() {
     ambientLight(50);
     directionalLight(255, 0, 0, 0.25, 0.25, 0);
 
+    let count = 0;
     for (obj of objects) {
+        if (count == 0)
+        {
+            //rotateX(millis()/1000);
+        }
+        else
+        {
+            //rotateX(-millis()/1000);
+        }
         obj.render();
+        count++;
     }
 
-    checkIfCollision();
+    //checkIfCollisionSphere();
+    //checkIfCollisionBox();
+    checkIfCollisionSphereBox();
 }
 
-function checkIfCollision()
+function checkIfCollisionSphere()
 {
     if (Math.sqrt(Math.pow(objects[0].position.x - objects[1].position.x, 2) + Math.pow(objects[0].position.y - objects[1].position.y, 2) + Math.pow(objects[0].position.z - objects[1].position.z, 2)) <= (objects[0].size + objects[1].size))
     {
@@ -200,7 +216,41 @@ function checkIfCollision()
 
 function checkIfCollisionBox()
 {
-    
+    // Check for overlap in x, y, and z directions
+    if (objects[0].position.x + (objects[0].size/2) > objects[1].position.x - (objects[1].size/2) && objects[0].position.x - (objects[0].size/2) < objects[1].position.x + (objects[1].size/2)
+        && objects[0].position.y + (objects[0].size/2) > objects[1].position.y - (objects[1].size/2) && objects[0].position.y - (objects[0].size/2) < objects[1].position.y + (objects[1].size/2)
+        && objects[0].position.z + (objects[0].size/2) > objects[1].position.z - (objects[1].size/2) && objects[0].position.z - (objects[0].size/2) < objects[1].position.z + (objects[1].size/2))
+    {
+
+        console.log("Collision: bouncing back!");
+        xRatio = (objects[0].position.x - objects[1].position.x) / (objects[0].size + objects[1].size);
+        yRatio = (objects[0].position.y - objects[1].position.y) / (objects[0].size + objects[1].size);
+        zRatio = (objects[0].position.z - objects[1].position.z) / (objects[0].size + objects[1].size);
+        objects[0].velocity.x *= -1;
+        objects[0].velocity.y *= -1;
+        objects[0].velocity.z *= -1;
+
+    }
+}
+
+function checkIfCollisionSphereBox()
+{
+    // Assuming Circle = 0 and Box = 1
+    let x = Math.max(objects[1].position.x - (objects[1].size/2), Math.min(objects[0].position.x, objects[1].position.x + (objects[1].size/2)));
+    let y = Math.max(objects[1].position.y - (objects[1].size/2), Math.min(objects[0].position.y, objects[1].position.y + (objects[1].size/2)));
+    let z = Math.max(objects[1].position.z - (objects[1].size/2), Math.min(objects[0].position.z, objects[1].position.z + (objects[1].size/2)));
+
+    let dist = Math.sqrt(Math.pow(x - objects[0].position.x, 2) + Math.pow(y - objects[0].position.y, 2) + Math.pow(z - objects[0].position.z, 2));
+    if (dist < objects[0].size)
+    {
+        console.log("Collision: bouncing back!");
+        xRatio = (objects[0].position.x - objects[1].position.x) / (objects[0].size + objects[1].size);
+        yRatio = (objects[0].position.y - objects[1].position.y) / (objects[0].size + objects[1].size);
+        zRatio = (objects[0].position.z - objects[1].position.z) / (objects[0].size + objects[1].size);
+        objects[0].velocity.x *= -1;
+        objects[0].velocity.y *= -1;
+        objects[0].velocity.z *= -1;
+    }
 }
 
 const shapes = {
@@ -241,6 +291,18 @@ class Obj {
                 translate(this.position);
                 box(this.size);
                 pop();
+                this.position.x += this.velocity.x
+                this.position.y += this.velocity.y
+                this.position.z += this.velocity.z
+                break;
+            case shapes.PLANE:
+                push();
+                translate(this.position);
+                plane(this.size);
+                pop();
+                this.position.x += this.velocity.x
+                this.position.y += this.velocity.y
+                this.position.z += this.velocity.z
                 break;
             default:
                 break;
