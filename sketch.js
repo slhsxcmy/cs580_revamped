@@ -165,8 +165,11 @@ function setup() {
     noStroke();
     ambientMaterial(255);
 
-    objects.push(new Obj(shapes.SPHERE, createVector(-100, 0, 0), createVector(0, 0, 0), 50));
-    objects.push(new Obj(shapes.SPHERE, createVector(100, 0, 0), createVector(0, 0, 0), 25));
+    //objects.push(new Obj(shapes.SPHERE, createVector(-100, -25, 0), createVector(1, 0, 0), 25));
+    //objects.push(new Obj(shapes.SPHERE, createVector(100, 0, 0), createVector(0, 0, 0), 25));
+
+    objects.push(new Obj(shapes.BOX, createVector(-100, 0, 0), createVector(0, 0, 0), 25));
+    objects.push(new Obj(shapes.BOX, createVector(100, 0, 0), createVector(0, 0, 0), 25));
 }
 function draw() {
     background(127);
@@ -177,6 +180,27 @@ function draw() {
     for (obj of objects) {
         obj.render();
     }
+
+    checkIfCollision();
+}
+
+function checkIfCollision()
+{
+    if (Math.sqrt(Math.pow(objects[0].position.x - objects[1].position.x, 2) + Math.pow(objects[0].position.y - objects[1].position.y, 2) + Math.pow(objects[0].position.z - objects[1].position.z, 2)) <= (objects[0].size + objects[1].size))
+    {
+        console.log("Collision: bouncing back!");
+        xRatio = (objects[0].position.x - objects[1].position.x) / (objects[0].size + objects[1].size);
+        yRatio = (objects[0].position.y - objects[1].position.y) / (objects[0].size + objects[1].size);
+        zRatio = (objects[0].position.z - objects[1].position.z) / (objects[0].size + objects[1].size);
+        objects[0].bounceBack(xRatio, yRatio, zRatio);
+        objects[1].bounceBack(xRatio * -1, yRatio * -1, zRatio * -1);
+    }
+
+}
+
+function checkIfCollisionBox()
+{
+    
 }
 
 const shapes = {
@@ -208,9 +232,26 @@ class Obj {
                 translate(this.position);
                 sphere(this.size);
                 pop();
+                this.position.x += this.velocity.x
+                this.position.y += this.velocity.y
+                this.position.z += this.velocity.z
+                break;
+            case shapes.BOX:
+                push();
+                translate(this.position);
+                box(this.size);
+                pop();
                 break;
             default:
                 break;
         }
+    }
+
+    bounceBack(xRatio, yRatio, zRatio)
+    {
+        let summedSpeeds = Math.abs(this.velocity.x) + Math.abs(this.velocity.y) + Math.abs(this.velocity.z)
+        this.velocity.x = summedSpeeds * xRatio;
+        this.velocity.y = summedSpeeds * yRatio;
+        this.velocity.z = summedSpeeds * zRatio;
     }
 }
