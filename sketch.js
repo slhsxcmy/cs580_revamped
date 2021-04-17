@@ -180,6 +180,18 @@ function draw() {
         obj.render();
         obj.move();
     }
+
+    for (let i = 0; i < objects.length; ++i) {
+        for (let j = i + 1; j < objects.length; ++j) {
+            let o1 = objects[i];
+            let o2 = objects[j];
+            checkCollision(o1, o2);
+        }
+    }
+}
+
+function checkCollision(o1, o2) {
+    // TODO
 }
 
 class Obj {
@@ -199,7 +211,7 @@ class Obj {
             case Cylinder:  cylinder (...this.args); break;
             case Cone:      cone     (...this.args); break;
             case Torus:     torus    (...this.args); break;
-            default:                                break;
+            default:                                 break;
         }
         pop();  // restore camera
     }
@@ -209,10 +221,10 @@ class Obj {
     }
 }
 
-class Sphere extends Obj {}
-class Box extends Obj {}
-class Plane extends Obj {}
-class Cylinder extends Obj {}
-class Cone extends Obj {}
-class Torus extends Obj {}
+class Sphere    extends Obj {}
+class Box       extends Obj {}
+class Plane     extends Obj {}
+class Cylinder  extends Obj {}
+class Cone      extends Obj {}
+class Torus     extends Obj {}
   
