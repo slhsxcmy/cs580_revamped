@@ -31,20 +31,25 @@ function draw() {
         obj.move();
     }
   
+    broadPhase();
+
+    //checkIfCollisionSphere();
+    //checkIfCollisionBox();
+    // checkIfCollisionSphereBox();
+}
+
+function broadPhase() {
     for (let i = 0; i < objects.length; ++i) {
         for (let j = i + 1; j < objects.length; ++j) {
             let o1 = objects[i];
             let o2 = objects[j];
-            checkCollision(o1, o2);
+            // TODO: if they might collide 
+            narrowPhase(o1, o2);
         }
     }
-
-    //checkIfCollisionSphere();
-    //checkIfCollisionBox();
-    checkIfCollisionSphereBox();
 }
 
-function checkCollision(o1, o2) {
+function narrowPhase(o1, o2) {
     // TODO
 }
 
