@@ -7,13 +7,13 @@ function setup() {
     ambientMaterial(255);
 
   
-    objects.push(new Sphere(createVector(-100, 25, 0), createVector(1, 0, 0), 25));
+    objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
     //objects.push(new Box(createVector(100, 0, 100), createVector(0, 0, -1), 25));
-    objects.push(new Box(createVector(100, 0, 0), createVector(0, 0, 0), 25));
+    objects.push(new Box(createVector(60, 0, 0), createVector(0, 0, 0), 55));
 
-    //objects.push(new PLANE(createVector(100, -25, 0), createVector(0, 0, 0), 25));
+    objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
     
     console.log(objects[0].constructor === Sphere);  // or instanceof
     console.log(objects[0].constructor === Box);
@@ -25,7 +25,7 @@ function draw() {
     
     ambientLight(50);
     directionalLight(255, 0, 0, 0.25, 0.25, 0);
-
+    
     for (obj of objects) {
         obj.render();
         obj.move();
@@ -39,12 +39,61 @@ function draw() {
 }
 
 function broadPhase() {
+    
+    // Naive method
+    // for (let i = 0; i < objects.length; ++i) {
+    //     for (let j = i + 1; j < objects.length; ++j) {
+    //         let o1 = objects[i];
+    //         let o2 = objects[j];
+    //         narrowPhase(o1, o2);
+    //     }
+    // }
+
+    // let boundingSphereCenters = [];
+    let boundingSphereRadiuses = [];
+    let x, y, z, r, h;
+    for (obj of objects) {
+        // boundingSphereCenters.push(createVector(obj.position));
+        switch (obj.constructor) {  // render based on type
+            case Sphere:    
+                r = obj.args[0];
+                boundingSphereRadiuses.push(r); 
+                break;
+            case Box:       
+                x = obj.args[0];
+                y = obj.args[1 % obj.args.length];
+                z = obj.args[obj.args.length - 1];
+                boundingSphereRadiuses.push(createVector(x, y, z).mag()); 
+                break;
+            case Plane:  
+                x = obj.args[0];
+                y = obj.args[1 % obj.args.length];   
+                boundingSphereRadiuses.push(createVector(x, y).mag()); 
+                break; 
+            case Cylinder: 
+            case Cone:      
+                r = obj.args[0];
+                h = obj.args[1 % obj.args.length];
+                boundingSphereRadiuses.push(createVector(r, h / 2).mag()); 
+                break;
+            case Torus: 
+                r = obj.args[0];
+                h = obj.args[1 % obj.args.length];
+                boundingSphereRadiuses.push(r + h); 
+                break;
+            default: break;
+        }
+    }
+    
     for (let i = 0; i < objects.length; ++i) {
         for (let j = i + 1; j < objects.length; ++j) {
             let o1 = objects[i];
             let o2 = objects[j];
-            // TODO: if they might collide 
-            narrowPhase(o1, o2);
+            let mightCollide = true;
+            let dist = p5.Vector.sub(objects[i].position, objects[j].position).mag();
+            if(dist > boundingSphereRadiuses[i] + boundingSphereRadiuses[j]) 
+                mightCollide = false;
+            if(mightCollide) narrowPhase(o1, o2);
         }
     }
 }
