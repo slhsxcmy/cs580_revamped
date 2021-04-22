@@ -64,6 +64,7 @@ function broadPhase() {
     for (let k = 0; k < 3; k++) { // for each axis
         let active = new Set();
         let values = [];  // AABB min and max values
+        
         for (let i = 0; i < objects.length; i++) {
             let obj = objects[i];
             // console.log(k + " " + i + " " + (obj.position.array()[k] - obj.aabb) + " " + (obj.position.array()[k] + obj.aabb));
@@ -72,10 +73,23 @@ function broadPhase() {
         }
         values.sort((a, b) => a[0] - b[0]);  // TODO?: sort values then 'b' 'e'
         // console.log(values);
+
+        for (let i = 0; i < objects.length; i++) {
+            overlap[i].push(new Set());
+        }
+
         for (let i = 0; i < values.length; i++) {
             if(values[i][1] == 'b') {
                 // console.log(i + " " + values[i][2]);
-                overlap[values[i][2]].push(new Set(active));
+                
+                // values[i][2] <-> active
+                let x = values[i][2];
+                for(let y of active) {
+                    overlap[y][overlap[y].length - 1].add(x);
+                    overlap[x][overlap[x].length - 1].add(y);
+                }
+                
+                // overlap[values[i][2]].push(new Set(active));
                 active.add(values[i][2]);
             } else {
                 active.delete(values[i][2]);
@@ -83,9 +97,11 @@ function broadPhase() {
         }
     }
 
-    // TODO: make overlap symmetric
+    // TODO: overlap symmetric but only test collision in 1-way
+
+
     for (let k = 0; k < 3; k++) { // for each axis
-        // TODO: intersection
+        // TODO: intersection of sets
     }
 
     // console.log(overlap.length);
