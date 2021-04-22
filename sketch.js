@@ -7,13 +7,15 @@ function setup() {
     ambientMaterial(255);
 
   
-    objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
+    // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
     //objects.push(new Box(createVector(100, 0, 100), createVector(0, 0, -1), 25));
-    objects.push(new Box(createVector(60, 0, 0), createVector(0, 0, 0), 55));
+    objects.push(new Box(createVector(50, 0, 0), createVector(0, 0, 0), 50));
 
     objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
+    
+    // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     
     console.log(objects[0].constructor === Sphere);  // or instanceof
     console.log(objects[0].constructor === Box);
@@ -39,6 +41,9 @@ function draw() {
 }
 
 function broadPhase() {
+    // console.log(objects[0].position.x);
+    // console.log(objects[0].aabb);
+    // console.log(objects[0].position.x - objects[0].aabb);
     
     // Naive method
     // for (let i = 0; i < objects.length; ++i) {
@@ -49,8 +54,47 @@ function broadPhase() {
     //     }
     // }
 
+    // AABB Sort and Sweep
+    let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
+    for (let i = 0; i < objects.length; i++) {
+        overlap.push([]);
+    }
+    // console.log(overlap);
+
+    for (let k = 0; k < 3; k++) { // for each axis
+        let active = new Set();
+        let values = [];  // AABB min and max values
+        for (let i = 0; i < objects.length; i++) {
+            let obj = objects[i];
+            // console.log(k + " " + i + " " + (obj.position.array()[k] - obj.aabb) + " " + (obj.position.array()[k] + obj.aabb));
+            values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
+            values.push([obj.position.array()[k] + obj.aabb, 'e', i]);  // max (end)
+        }
+        values.sort((a, b) => a[0] - b[0]);  // TODO?: sort values then 'b' 'e'
+        // console.log(values);
+        for (let i = 0; i < values.length; i++) {
+            if(values[i][1] == 'b') {
+                // console.log(i + " " + values[i][2]);
+                overlap[values[i][2]].push(new Set(active));
+                active.add(values[i][2]);
+            } else {
+                active.delete(values[i][2]);
+            }
+        }
+    }
+
+    // TODO: make overlap symmetric
+    for (let k = 0; k < 3; k++) { // for each axis
+        // TODO: intersection
+    }
+
+    // console.log(overlap.length);
+    // console.log(overlap[0]);
+    // console.log(overlap[1]);
+    console.log(overlap);
     
 }
+ 
 
 function narrowPhase(o1, o2) {
     // TODO
