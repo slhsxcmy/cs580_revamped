@@ -6,17 +6,17 @@ function setup() {
     noStroke();
     ambientMaterial(255);
 
-  
+
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
-    //objects.push(new Box(createVector(100, 0, 100), createVector(0, 0, -1), 25));
-    objects.push(new Box(createVector(50, 0, 0), createVector(0, 0, 0), 50));
+    objects.push(new Box(createVector(100, 0, 0), createVector(-1, 0, 0), 25));
+    objects.push(new Box(createVector(-100, 0, 0), createVector(0, 0, 0), 50));
 
-    objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
-    
+    //objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
+
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
-    
+
     console.log(objects[0].constructor === Sphere);  // or instanceof
     console.log(objects[0].constructor === Box);
     console.log(objects[0].constructor === Obj);
@@ -24,15 +24,15 @@ function setup() {
 
 function draw() {
     background(127);
-    
+
     ambientLight(50);
     directionalLight(255, 0, 0, 0.25, 0.25, 0);
-    
+
     for (obj of objects) {
         obj.render();
         obj.move();
     }
-  
+
     broadPhase();
 
     //checkIfCollisionSphere();
@@ -44,7 +44,7 @@ function broadPhase() {
     // console.log(objects[0].position.x);
     // console.log(objects[0].aabb);
     // console.log(objects[0].position.x - objects[0].aabb);
-    
+
     // Naive method
     // for (let i = 0; i < objects.length; ++i) {
     //     for (let j = i + 1; j < objects.length; ++j) {
@@ -64,7 +64,7 @@ function broadPhase() {
     for (let k = 0; k < 3; k++) { // for each axis
         let active = new Set();
         let values = [];  // AABB min and max values
-        
+
         for (let i = 0; i < objects.length; i++) {
             let obj = objects[i];
             // console.log(k + " " + i + " " + (obj.position.array()[k] - obj.aabb) + " " + (obj.position.array()[k] + obj.aabb));
@@ -81,14 +81,14 @@ function broadPhase() {
         for (let i = 0; i < values.length; i++) {
             if(values[i][1] == 'b') {
                 // console.log(i + " " + values[i][2]);
-                
+
                 // values[i][2] <-> active
                 let x = values[i][2];
                 for(let y of active) {
                     overlap[y][overlap[y].length - 1].add(x);
                     overlap[x][overlap[x].length - 1].add(y);
                 }
-                
+
                 // overlap[values[i][2]].push(new Set(active));
                 active.add(values[i][2]);
             } else {
@@ -108,12 +108,55 @@ function broadPhase() {
     // console.log(overlap[0]);
     // console.log(overlap[1]);
     console.log(overlap);
-    
+
 }
- 
+
 
 function narrowPhase(o1, o2) {
-    // TODO
+   // Separating Axis Theorem
+   // Calculate Surface Normals of each face on object 1
+   let o1FaceNormals = [];
+
+   // one vertex on each face. Indeces match up with face normals object
+   let o1FaceVertex = [];
+
+   // Check if all vertices of object 2 are in front of one of the face normals
+   let o2AllVertices = []
+   // (v - a) DOT N
+   overlapping = true;
+   // Loop over every face normal from object 1
+   for (let i=0;i<o1FaceNormals.size;i++)
+   {
+      let allVerticesInFrontOfFace = true;
+      for (let j=0;j<o2AllVertices.size;j++)
+      {
+         let currentVal = (o2AllVertices[j] - o1FaceVertex[i]) DOT_PRODUCT o1FaceNormals[i]
+         if (currenVal > 0)
+         {
+            // current o2 vertex is in front of the o1 face normal. Continue checking o2 vertices
+         }
+         else
+         {
+            // Current o2 vertex is NOT in front of o1 face normal. Try another o1 Face
+            allVerticesInFrontOfFace = false;
+            continue;
+         }
+      }
+      if (allVerticesInFrontOfFace)
+      {
+         overlapping = false;
+         break;
+      }
+   }
+
+   if (overlapping)
+   {
+      return true;
+   }
+   else
+   {
+      return false;
+   }
 }
 
 function checkIfCollisionSphere()
@@ -178,31 +221,31 @@ class Obj {
         this.args     = args;     // arguments, size or radius, etc.
         let x, y, z, r, h;
         switch (this.constructor) {  // render based on type
-            case Sphere:    
+            case Sphere:
                 r = args[0];
                 this.aabb = r;  // bounding box range: position ± aabb
                 break;
-            case Box:       
+            case Box:
                 x = args[0];
                 y = args[1 % args.length];
                 z = args[args.length - 1];
-                this.aabb = createVector(x, y, z).mag(); 
+                this.aabb = createVector(x, y, z).mag();
                 break;
-            case Plane:  
+            case Plane:
                 x = args[0];
-                y = args[1 % args.length];   
-                this.aabb = createVector(x, y).mag(); 
-                break; 
-            case Cylinder: 
-            case Cone:      
-                r = args[0];
-                h = args[1 % args.length];
-                this.aabb = createVector(r, h / 2).mag(); 
+                y = args[1 % args.length];
+                this.aabb = createVector(x, y).mag();
                 break;
-            case Torus: 
+            case Cylinder:
+            case Cone:
                 r = args[0];
                 h = args[1 % args.length];
-                this.aabb = r + h; 
+                this.aabb = createVector(r, h / 2).mag();
+                break;
+            case Torus:
+                r = args[0];
+                h = args[1 % args.length];
+                this.aabb = r + h;
                 break;
             default: break;
         }
@@ -230,9 +273,9 @@ class Obj {
     bounceBack(xRatio, yRatio, zRatio)
     {
         let summedSpeeds = Math.abs(this.velocity.x) + Math.abs(this.velocity.y) + Math.abs(this.velocity.z)
-        this.velocity.x 
-          
-          
+        this.velocity.x
+
+
           = summedSpeeds * xRatio;
         this.velocity.y = summedSpeeds * yRatio;
         this.velocity.z = summedSpeeds * zRatio;
@@ -245,4 +288,3 @@ class Plane     extends Obj {}
 class Cylinder  extends Obj {}
 class Cone      extends Obj {}
 class Torus     extends Obj {}
-  
