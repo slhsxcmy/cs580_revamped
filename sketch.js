@@ -7,6 +7,8 @@ function setup() {
     ambientMaterial(255);
 
   
+    objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
+    
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
@@ -14,8 +16,6 @@ function setup() {
     objects.push(new Box(createVector(50, 0, 0), createVector(0, 0, 0), 50));
 
     objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
-    
-    // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     
     console.log(objects[0].constructor === Sphere);  // or instanceof
     console.log(objects[0].constructor === Box);
@@ -71,43 +71,45 @@ function broadPhase() {
             values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
             values.push([obj.position.array()[k] + obj.aabb, 'e', i]);  // max (end)
         }
-        values.sort((a, b) => a[0] - b[0]);  // TODO?: sort values then 'b' 'e'
+        values.sort((a, b) => a[0] - b[0]);  // sort values then 'b' 'e'
         // console.log(values);
 
         for (let i = 0; i < objects.length; i++) {
             overlap[i].push(new Set());
         }
 
-        for (let i = 0; i < values.length; i++) {
-            if(values[i][1] == 'b') {
-                // console.log(i + " " + values[i][2]);
-                
-                // values[i][2] <-> active
-                let x = values[i][2];
-                for(let y of active) {
-                    overlap[y][overlap[y].length - 1].add(x);
-                    overlap[x][overlap[x].length - 1].add(y);
+        for (let l = 0; l < values.length; l++) {
+            let i = values[l][2];
+            if(values[l][1] == 'b') {
+                // console.log(l + " " + values[l][2]);
+
+                for(let j of active) {
+                    if(i < j) overlap[i][overlap[i].length - 1].add(j);  // small index -> large index
+                    else overlap[j][overlap[j].length - 1].add(i);
                 }
                 
-                // overlap[values[i][2]].push(new Set(active));
-                active.add(values[i][2]);
+                active.add(i);
             } else {
-                active.delete(values[i][2]);
+                active.delete(i);
             }
         }
     }
 
-    // TODO: overlap symmetric but only test collision in 1-way
+    // overlap symmetric but only test collision in 1-way
 
-
-    for (let k = 0; k < 3; k++) { // for each axis
-        // TODO: intersection of sets
+    for (let i = 0; i < objects.length; i++) {
+        let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
+        console.log(i);
+        console.log(intersection);
+        for(let j in intersection) {
+            narrowPhase(objects[i], objects[j]);
+        }
     }
 
     // console.log(overlap.length);
     // console.log(overlap[0]);
     // console.log(overlap[1]);
-    console.log(overlap);
+    // console.log(overlap);
     
 }
  
