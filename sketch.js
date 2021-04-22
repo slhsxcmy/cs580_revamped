@@ -49,53 +49,7 @@ function broadPhase() {
     //     }
     // }
 
-    // let boundingSphereCenters = [];
-    let boundingSphereRadiuses = [];
-    let x, y, z, r, h;
-    for (obj of objects) {
-        // boundingSphereCenters.push(createVector(obj.position));
-        switch (obj.constructor) {  // render based on type
-            case Sphere:    
-                r = obj.args[0];
-                boundingSphereRadiuses.push(r); 
-                break;
-            case Box:       
-                x = obj.args[0];
-                y = obj.args[1 % obj.args.length];
-                z = obj.args[obj.args.length - 1];
-                boundingSphereRadiuses.push(createVector(x, y, z).mag()); 
-                break;
-            case Plane:  
-                x = obj.args[0];
-                y = obj.args[1 % obj.args.length];   
-                boundingSphereRadiuses.push(createVector(x, y).mag()); 
-                break; 
-            case Cylinder: 
-            case Cone:      
-                r = obj.args[0];
-                h = obj.args[1 % obj.args.length];
-                boundingSphereRadiuses.push(createVector(r, h / 2).mag()); 
-                break;
-            case Torus: 
-                r = obj.args[0];
-                h = obj.args[1 % obj.args.length];
-                boundingSphereRadiuses.push(r + h); 
-                break;
-            default: break;
-        }
-    }
     
-    for (let i = 0; i < objects.length; ++i) {
-        for (let j = i + 1; j < objects.length; ++j) {
-            let o1 = objects[i];
-            let o2 = objects[j];
-            let mightCollide = true;
-            let dist = p5.Vector.sub(objects[i].position, objects[j].position).mag();
-            if(dist > boundingSphereRadiuses[i] + boundingSphereRadiuses[j]) 
-                mightCollide = false;
-            if(mightCollide) narrowPhase(o1, o2);
-        }
-    }
 }
 
 function narrowPhase(o1, o2) {
@@ -155,11 +109,43 @@ function checkIfCollisionSphereBox()
     }
 }
 
+
+
 class Obj {
     constructor(pos, vel, ...args) {
         this.position = pos;  // p5.Vector
         this.velocity = vel;  // p5.Vector
         this.args     = args;     // arguments, size or radius, etc.
+        let x, y, z, r, h;
+        switch (this.constructor) {  // render based on type
+            case Sphere:    
+                r = args[0];
+                this.aabb = r;  // bounding box range: position ± aabb
+                break;
+            case Box:       
+                x = args[0];
+                y = args[1 % args.length];
+                z = args[args.length - 1];
+                this.aabb = createVector(x, y, z).mag(); 
+                break;
+            case Plane:  
+                x = args[0];
+                y = args[1 % args.length];   
+                this.aabb = createVector(x, y).mag(); 
+                break; 
+            case Cylinder: 
+            case Cone:      
+                r = args[0];
+                h = args[1 % args.length];
+                this.aabb = createVector(r, h / 2).mag(); 
+                break;
+            case Torus: 
+                r = args[0];
+                h = args[1 % args.length];
+                this.aabb = r + h; 
+                break;
+            default: break;
+        }
     }
 
     render() {
