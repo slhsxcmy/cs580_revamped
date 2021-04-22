@@ -7,6 +7,8 @@ function setup() {
     ambientMaterial(255);
 
 
+    objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
+
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
@@ -15,7 +17,7 @@ function setup() {
 
     //objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
 
-    // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
+    objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
 
     console.log(objects[0].constructor === Sphere);  // or instanceof
     console.log(objects[0].constructor === Box);
@@ -41,11 +43,7 @@ function draw() {
 }
 
 function broadPhase() {
-    // console.log(objects[0].position.x);
-    // console.log(objects[0].aabb);
-    // console.log(objects[0].position.x - objects[0].aabb);
-
-    // Naive method
+    // Naive method O(n^2)
     // for (let i = 0; i < objects.length; ++i) {
     //     for (let j = i + 1; j < objects.length; ++j) {
     //         let o1 = objects[i];
@@ -54,12 +52,11 @@ function broadPhase() {
     //     }
     // }
 
-    // AABB Sort and Sweep
+    // AABB Sort and Sweep O(nlogn)
     let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
     for (let i = 0; i < objects.length; i++) {
         overlap.push([]);
     }
-    // console.log(overlap);
 
     for (let k = 0; k < 3; k++) { // for each axis
         let active = new Set();
@@ -67,48 +64,37 @@ function broadPhase() {
 
         for (let i = 0; i < objects.length; i++) {
             let obj = objects[i];
-            // console.log(k + " " + i + " " + (obj.position.array()[k] - obj.aabb) + " " + (obj.position.array()[k] + obj.aabb));
             values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
             values.push([obj.position.array()[k] + obj.aabb, 'e', i]);  // max (end)
         }
-        values.sort((a, b) => a[0] - b[0]);  // TODO?: sort values then 'b' 'e'
-        // console.log(values);
+        values.sort((a, b) => a[0] - b[0]);  // sort by values[0]
 
-        for (let i = 0; i < objects.length; i++) {
+        for (let i = 0; i < objects.length; i++) {  // initialize sets in overlap
             overlap[i].push(new Set());
         }
 
-        for (let i = 0; i < values.length; i++) {
-            if(values[i][1] == 'b') {
-                // console.log(i + " " + values[i][2]);
-
-                // values[i][2] <-> active
-                let x = values[i][2];
-                for(let y of active) {
-                    overlap[y][overlap[y].length - 1].add(x);
-                    overlap[x][overlap[x].length - 1].add(y);
+        for (let l = 0; l < values.length; l++) {
+            let i = values[l][2];
+            if(values[l][1] == 'b') {
+                for(let j of active) {  // only add small index -> large index
+                    if(i < j) overlap[i][overlap[i].length - 1].add(j);
+                    else overlap[j][overlap[j].length - 1].add(i);
                 }
-
-                // overlap[values[i][2]].push(new Set(active));
-                active.add(values[i][2]);
+                active.add(i);
             } else {
-                active.delete(values[i][2]);
+                active.delete(i);
             }
         }
     }
 
-    // TODO: overlap symmetric but only test collision in 1-way
-
-
-    for (let k = 0; k < 3; k++) { // for each axis
-        // TODO: intersection of sets
+    for (let i = 0; i < objects.length; i++) {
+        let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
+        console.log(i);
+        console.log(intersection);
+        for(let j in intersection) {  // i and j might collide
+            narrowPhase(objects[i], objects[j]);
+        }
     }
-
-    // console.log(overlap.length);
-    // console.log(overlap[0]);
-    // console.log(overlap[1]);
-    console.log(overlap);
-
 }
 
 
