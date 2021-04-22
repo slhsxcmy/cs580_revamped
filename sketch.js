@@ -7,13 +7,15 @@ function setup() {
     ambientMaterial(255);
 
   
-    objects.push(new Sphere(createVector(-100, 25, 0), createVector(1, 0, 0), 25));
+    objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
+    
+    // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
     //objects.push(new Box(createVector(100, 0, 100), createVector(0, 0, -1), 25));
-    objects.push(new Box(createVector(100, 0, 0), createVector(0, 0, 0), 25));
+    objects.push(new Box(createVector(50, 0, 0), createVector(0, 0, 0), 50));
 
-    //objects.push(new PLANE(createVector(100, -25, 0), createVector(0, 0, 0), 25));
+    objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
     
     console.log(objects[0].constructor === Sphere);  // or instanceof
     console.log(objects[0].constructor === Box);
@@ -25,7 +27,7 @@ function draw() {
     
     ambientLight(50);
     directionalLight(255, 0, 0, 0.25, 0.25, 0);
-
+    
     for (obj of objects) {
         obj.render();
         obj.move();
@@ -39,15 +41,60 @@ function draw() {
 }
 
 function broadPhase() {
-    for (let i = 0; i < objects.length; ++i) {
-        for (let j = i + 1; j < objects.length; ++j) {
-            let o1 = objects[i];
-            let o2 = objects[j];
-            // TODO: if they might collide 
-            narrowPhase(o1, o2);
+    // Naive method O(n^2)
+    // for (let i = 0; i < objects.length; ++i) {
+    //     for (let j = i + 1; j < objects.length; ++j) {
+    //         let o1 = objects[i];
+    //         let o2 = objects[j];
+    //         narrowPhase(o1, o2);
+    //     }
+    // }
+
+    // AABB Sort and Sweep O(nlogn)
+    let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
+    for (let i = 0; i < objects.length; i++) {
+        overlap.push([]);
+    }
+
+    for (let k = 0; k < 3; k++) { // for each axis
+        let active = new Set();
+        let values = [];  // AABB min and max values
+        
+        for (let i = 0; i < objects.length; i++) {
+            let obj = objects[i];
+            values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
+            values.push([obj.position.array()[k] + obj.aabb, 'e', i]);  // max (end)
+        }
+        values.sort((a, b) => a[0] - b[0]);  // sort by values[0]
+
+        for (let i = 0; i < objects.length; i++) {  // initialize sets in overlap
+            overlap[i].push(new Set());
+        }
+
+        for (let l = 0; l < values.length; l++) {
+            let i = values[l][2];
+            if(values[l][1] == 'b') {
+                for(let j of active) {  // only add small index -> large index
+                    if(i < j) overlap[i][overlap[i].length - 1].add(j); 
+                    else overlap[j][overlap[j].length - 1].add(i);
+                }
+                active.add(i);
+            } else {
+                active.delete(i);
+            }
+        }
+    }
+    
+    for (let i = 0; i < objects.length; i++) {
+        let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
+        console.log(i);
+        console.log(intersection);
+        for(let j in intersection) {  // i and j might collide
+            narrowPhase(objects[i], objects[j]);
         }
     }
 }
+ 
 
 function narrowPhase(o1, o2) {
     // TODO
@@ -106,11 +153,43 @@ function checkIfCollisionSphereBox()
     }
 }
 
+
+
 class Obj {
     constructor(pos, vel, ...args) {
         this.position = pos;  // p5.Vector
         this.velocity = vel;  // p5.Vector
         this.args     = args;     // arguments, size or radius, etc.
+        let x, y, z, r, h;
+        switch (this.constructor) {  // render based on type
+            case Sphere:    
+                r = args[0];
+                this.aabb = r;  // bounding box range: position ± aabb
+                break;
+            case Box:       
+                x = args[0];
+                y = args[1 % args.length];
+                z = args[args.length - 1];
+                this.aabb = createVector(x, y, z).mag(); 
+                break;
+            case Plane:  
+                x = args[0];
+                y = args[1 % args.length];   
+                this.aabb = createVector(x, y).mag(); 
+                break; 
+            case Cylinder: 
+            case Cone:      
+                r = args[0];
+                h = args[1 % args.length];
+                this.aabb = createVector(r, h / 2).mag(); 
+                break;
+            case Torus: 
+                r = args[0];
+                h = args[1 % args.length];
+                this.aabb = r + h; 
+                break;
+            default: break;
+        }
     }
 
     render() {
