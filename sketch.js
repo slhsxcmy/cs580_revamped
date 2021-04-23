@@ -13,9 +13,9 @@ function setup() {
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
     //objects.push(new Box(createVector(100, 0, 100), createVector(0, 0, -1), 25));
-    objects.push(new Box(createVector(50, 0, 0), createVector(0, 0, 0), 50));
+    objects.push(new Box(createVector(150, 0, 0), createVector(0, 0, 0), 50));
 
-    objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
+    objects.push(new Torus(createVector(200, 0, 0), createVector(0, 0, 0), 30, 1));
     
     console.log(objects[0].constructor === Sphere);  // or instanceof
     console.log(objects[0].constructor === Box);
@@ -25,12 +25,25 @@ function setup() {
     // icosahedronSphereGenerator.generate(1);
 }
 
+const collisionStatus = {
+    NOCOL: "NO_COLLISION",
+    BROAD: "BROAD_COLLISION",
+    NARROW: "NARROW_COLLISION"
+}
+const materials = {
+    NOCOL: [255, 0, 0],
+    BROAD: [0, 255, 0],
+    NARROW: [0, 0, 255],
+}
+
 function draw() {
     background(127);
     
-    ambientLight(50);
-    directionalLight(255, 0, 0, 0.25, 0.25, 0);
+    // ambientLight(255);
+    directionalLight(127, 127, 127, 0.5774, 0.5774, -0.5774);
     
+    // ambientMaterial(255, 0, 0);
+    specularMaterial([255, 0, 0]);
     for (obj of objects) {
         obj.render();
         obj.move();
@@ -159,6 +172,9 @@ function checkIfCollisionSphereBox()
 
 class Obj {
     constructor(pos, vel, ...args) {
+        // for display during collision
+        this.colorIndex = collisionStatus.NOCOL;
+
         // for collision detection
         this.vertices = [];  // each element is vertex location as p5.Vector(x, y, z) 
         this.faces = [];  // each element is 3 indeces in this.vertices as a 3-tuple 
@@ -168,7 +184,7 @@ class Obj {
         this.velocity = vel;  // p5.Vector
         this.args     = args;     // arguments, size or radius, etc.
         let x, y, z, r, h;
-        switch (this.constructor) {  // render based on type
+        switch (this.constructor) {  // AABB size based on shape type
             case Sphere:    
                 r = args[0];
                 this.aabb = r;  // bounding box range: position ± aabb
@@ -200,6 +216,7 @@ class Obj {
     }
 
     render() {
+        specularMaterial(materials[this.colorIndex]);
         push();  // save camera
         translate(this.position);  // move camera
         switch (this.constructor) {  // render based on type
