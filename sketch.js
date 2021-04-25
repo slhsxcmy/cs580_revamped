@@ -11,14 +11,14 @@ function setup() {
 
     // console.log(materials);
 
-  
-    objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
+    // TODO: create vertexList for Sphere
+    objects.push(new Box(createVector(-100, 0, 0), createVector(0, 0, 0), 25));
     // objects[0].generateVertices();
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
     //objects.push(new Box(createVector(100, 0, 100), createVector(0, 0, -1), 25));
-    objects.push(new Box(createVector(150, 0, 0), createVector(0, 0, 0), 50));
+    objects.push(new Box(createVector(-75, 0, 0), createVector(0, 0, 0), 50));
 
     // objects.push(new Torus(createVector(200, 0, 0), createVector(0, 0, 0), 30, 1));
     
@@ -48,14 +48,14 @@ function draw() {
         obj.move();
     }
 
-//     if (firstLoop)
-//     {
-//       narrowPhase(objects[0], objects[1]);
-//       firstLoop = false;
-//     }
+    if (firstLoop)
+    {
+      narrowPhase(objects[0], objects[1]);
+      firstLoop = false;
+    }
 
   
-    broadPhase();
+    // broadPhase();
   
     //checkIfCollisionSphere();
     //checkIfCollisionBox();
@@ -130,7 +130,7 @@ function broadPhase() {
 
 
 function narrowPhase(o1, o2) {
-   console.log("Called Narrow Phase")
+//    console.log("Called Narrow Phase")
    // Separating Axis Theorem
    // Calculate Surface Normals of each face on object 1
    let o1FaceNormals = [];
@@ -144,6 +144,7 @@ function narrowPhase(o1, o2) {
    for (let i=0;i<o1.faceList.length;i++)
    {
       let currentFace = o1.faceList[i];
+    //   console.log(o1.vertexList);
       // // 2 edges of the square face
       let edge1 = p5.Vector.sub(currentFace[1], currentFace[0]);
       let edge2 = p5.Vector.sub(currentFace[2], currentFace[0]);
@@ -296,6 +297,7 @@ function narrowPhase(o1, o2) {
 
    if (overlapping)
    {
+      o1.colorKey = o2.colorKey = "NARROW";
       console.log("overlapping");
       return true;
    }
@@ -398,6 +400,7 @@ class Obj {
                 this.vertexList.push(createVector(this.position.x-(x/2), this.position.y+(y/2), this.position.z-(z/2)));
                 this.vertexList.push(createVector(this.position.x-(x/2), this.position.y-(y/2), this.position.z+(z/2)));
                 this.vertexList.push(createVector(this.position.x-(x/2), this.position.y-(y/2), this.position.z-(z/2)));
+                console.log(this.vertexList);
                 this.updateFaceList();
                 break;
             case Plane:
