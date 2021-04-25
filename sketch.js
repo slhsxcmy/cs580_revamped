@@ -15,7 +15,7 @@ function setup() {
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
-    objects.push(new Box(createVector(-40, 0, 0), createVector(0, 0, 0), 50));
+    objects.push(new Box(createVector(0, 0, 0), createVector(0, 0, 0), 50));
     objects.push(new Box(createVector(-100, 0, 0), createVector(0, 0, 0), 50));
 
     // Create the Vertices for both objects
@@ -114,28 +114,91 @@ function narrowPhase(o1, o2) {
    // Separating Axis Theorem
    // Calculate Surface Normals of each face on object 1
    let o1FaceNormals = [];
+   let o1EdgeVectors = [];
+   let o1CornerVectors = [];
    // one vertex on each face. Indeces match up with face normals object
    let o1FaceVertex = [];
-
+   let o1EdgeVertex = [];
+   let o1CornerVertex = [];
+   // Check if all vertices of object 2 are on the other side of a plane parallel to the faces of object 1
    for (let i=0;i<o1.faceList.length;i++)
    {
       let currentFace = o1.faceList[i];
-      //console.log(currentFace);
       // // 2 edges of the square face
       let edge1 = p5.Vector.sub(currentFace[1], currentFace[0]);
       let edge2 = p5.Vector.sub(currentFace[2], currentFace[0]);
-      //console.log(edge1);
-      //console.log(edge2);
       let currentFaceNormal = createVector(((edge1.y * edge2.z) - (edge1.z * edge2.y)),
          ((edge1.z * edge2.x) - (edge1.x * edge2.z)),
          ((edge1.x * edge2.y) - (edge1.y * edge2.x)));
-      // currentFaceNormal[0] = ((edge1.y * edge2.z) - (edge1.z * edge2.y));
-      // currentFaceNormal[1] = ((edge1.z * edge2.x) - (edge1.x * edge2.z));
-      // currentFaceNormal[2] = ((edge1.x * edge2.y) - (edge1.y * edge2.x));
+
       // Normalize the vector
       p5.Vector.normalize(currentFaceNormal);
       o1FaceNormals.push(currentFaceNormal);
       o1FaceVertex.push(currentFace[0]);
+   }
+
+   // Check if all vertices of object 2 are on the other side of a plane parallel to edges (from center) of object 1
+   for (let i=0;i<o1.faceList.length;i++)
+   {
+      let currentFace = o1.faceList[i];
+      // 4 edges on each face
+      // Find vector from center of object to center-point between edges
+
+      // edge 1 = currentFace[0] - currentFace[1]
+      let midEdge1 = p5.Vector.div(p5.Vector.add(currentFace[0], currentFace[1]), 2);
+      o1EdgeVertex.push(currentFace[0]);
+      // edge 2 = currentFace[2] - currentFace[3]
+      let midEdge2 = p5.Vector.div(p5.Vector.add(currentFace[2], currentFace[3]), 2);
+      o1EdgeVertex.push(currentFace[2]);
+      // edge 3 = currentFace[1] - currentFace[3]
+      let midEdge3 = p5.Vector.div(p5.Vector.add(currentFace[1], currentFace[3]), 2);
+      o1EdgeVertex.push(currentFace[1]);
+      // edge 4 = currentFace[0] - currentFace[2]
+      let midEdge4 = p5.Vector.div(p5.Vector.add(currentFace[0], currentFace[2]), 2);
+      o1EdgeVertex.push(currentFace[0]);
+
+      // Vector from center of object 1 to center-point between edges
+      let vector1 = p5.Vector.sub(midEdge1, o1.position);
+      let vector2 = p5.Vector.sub(midEdge2, o1.position);
+      let vector3 = p5.Vector.sub(midEdge3, o1.position);
+      let vector4 = p5.Vector.sub(midEdge4, o1.position);
+
+      // Normalize the vectors
+      p5.Vector.normalize(vector1);
+      p5.Vector.normalize(vector2);
+      p5.Vector.normalize(vector3);
+      p5.Vector.normalize(vector4);
+      o1EdgeVectors.push(vector1);
+      o1EdgeVectors.push(vector2);
+      o1EdgeVectors.push(vector3);
+      o1EdgeVectors.push(vector4);
+   }
+
+   // Check if all vertices of object 2 are on the other side of a plane parallel to vertices (from center) of object 1
+   for (let i=0;i<o1.faceList.length;i++)
+   {
+      let currentFace = o1.faceList[i];
+      // 4 vertices on each face
+      // Find vector from center of object to each vertex
+
+      let vector1 = p5.Vector.sub(currentFace[0], o1.position);
+      let vector2 = p5.Vector.sub(currentFace[1], o1.position);
+      let vector3 = p5.Vector.sub(currentFace[2], o1.position);
+      let vector4 = p5.Vector.sub(currentFace[3], o1.position);
+
+      // Normalize the vectors
+      p5.Vector.normalize(vector1);
+      p5.Vector.normalize(vector2);
+      p5.Vector.normalize(vector3);
+      p5.Vector.normalize(vector4);
+      o1CornerVectors.push(vector1);
+      o1CornerVectors.push(vector2);
+      o1CornerVectors.push(vector3);
+      o1CornerVectors.push(vector4);
+      o1CornerVertex.push(currentFace[0]);
+      o1CornerVertex.push(currentFace[1]);
+      o1CornerVertex.push(currentFace[2]);
+      o1CornerVertex.push(currentFace[3]);
    }
 
    // Check if all vertices of object 2 are in front of one of the face normals
@@ -147,19 +210,12 @@ function narrowPhase(o1, o2) {
       let allVerticesInFrontOfFace = true;
       for (let j=0;j<o2.vertexList.length;j++)
       {
-         //console.log(o2.vertexList[j]);
-         //console.log(o1FaceVertex[i]);
          let currentVal = p5.Vector.dot(p5.Vector.sub(o2.vertexList[j], o1FaceVertex[i]), o1FaceNormals[i]);
-         console.log(currentVal);
-         if (currentVal > 0)
-         {
-            // current o2 vertex is in front of the o1 face normal. Continue checking o2 vertices
-         }
-         else
+         if (currentVal <= 0)
          {
             // Current o2 vertex is NOT in front of o1 face normal. Try another o1 Face
             allVerticesInFrontOfFace = false;
-            continue;
+            break;
          }
       }
       if (allVerticesInFrontOfFace)
@@ -168,6 +224,57 @@ function narrowPhase(o1, o2) {
          break;
       }
    }
+
+   // If haven't found a separating plane yet, check edge planes
+   if (overlapping)
+   {
+      for (let i=0;i<o1EdgeVectors.length;i++)
+      {
+         let allVerticesInFrontOfEdge = true;
+         for (let j=0;j<o2.vertexList.length;j++)
+         {
+            let currentVal = p5.Vector.dot(p5.Vector.sub(o2.VertexList[j], o1EdgeVertex[i]), o1EdgeVectors[i]);
+            console.log(currentVal);
+            if (currentVal <= 0)
+            {
+               // Current o2 vertex is NOT in front of o1 edge normal. Try another o1 Edge Normal
+               allVerticesInFrontOfEdge = false;
+               break;
+            }
+         }
+         if (allVerticesInFrontOfEdge)
+         {
+            overlapping = false;
+            break;
+         }
+      }
+   }
+
+   // If haven't found a separating plane yet, check corner planes
+   if (overlapping)
+   {
+      for (let i=0;i<o1CornerVectors.length;i++)
+      {
+         let allVerticesInFrontOfCorner = true;
+         for (let j=0;j<o2.vertexList.length;j++)
+         {
+            let currentVal = p5.Vector.dot(p5.Vector.sub(o2.VertexList[j], o1CornerVertex[i]), o1CornerVectors[i]);
+            console.log(currentVal);
+            if (currentVal <= 0)
+            {
+               // Current o2 vertex is NOT in front of o1 corner normal. Try another o1 Corner Normal
+               allVerticesInFrontOfCorner = false;
+               break;
+            }
+         }
+         if (allVerticesInFrontOfCorner)
+         {
+            overlapping = false;
+            break;
+         }
+      }
+   }
+
 
    if (overlapping)
    {
