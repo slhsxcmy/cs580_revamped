@@ -6,6 +6,8 @@ function setup() {
     noStroke();
     ambientMaterial(255);
 
+    // console.log(materials);
+
   
     objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     // objects[0].generateVertices();
@@ -15,25 +17,17 @@ function setup() {
     //objects.push(new Box(createVector(100, 0, 100), createVector(0, 0, -1), 25));
     objects.push(new Box(createVector(150, 0, 0), createVector(0, 0, 0), 50));
 
-    objects.push(new Torus(createVector(200, 0, 0), createVector(0, 0, 0), 30, 1));
+    // objects.push(new Torus(createVector(200, 0, 0), createVector(0, 0, 0), 30, 1));
     
     console.log(objects[0].constructor === Sphere);  // or instanceof
     console.log(objects[0].constructor === Box);
     console.log(objects[0].constructor === Obj);
-
-    // let icosahedronSphereGenerator = new IcosahedronSphereGenerator();
-    // icosahedronSphereGenerator.generate(1);
 }
 
-const collisionStatus = {
-    NOCOL: "NO_COLLISION",
-    BROAD: "BROAD_COLLISION",
-    NARROW: "NARROW_COLLISION"
-}
 const materials = {
-    NOCOL: [255, 0, 0],
-    BROAD: [0, 255, 0],
-    NARROW: [0, 0, 255],
+    "NOCOL": [255, 0, 0],
+    "BROAD": [0, 255, 0],
+    "NARROW": [0, 0, 255],
 }
 
 function draw() {
@@ -43,8 +37,9 @@ function draw() {
     directionalLight(127, 127, 127, 0.5774, 0.5774, -0.5774);
     
     // ambientMaterial(255, 0, 0);
-    specularMaterial([255, 0, 0]);
+    // specularMaterial(materials["BROAD"]);
     for (obj of objects) {
+        // console.log(obj);
         obj.render();
         obj.move();
     }
@@ -56,58 +51,68 @@ function draw() {
 }
 
 function broadPhase() {
-    // Naive method O(n^2)
-    // for (let i = 0; i < objects.length; ++i) {
-    //     for (let j = i + 1; j < objects.length; ++j) {
-    //         let o1 = objects[i];
-    //         let o2 = objects[j];
-    //         narrowPhase(o1, o2);
-    //     }
-    // }
-
-    // AABB Sort and Sweep O(nlogn)
-    let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
-    for (let i = 0; i < objects.length; i++) {
-        overlap.push([]);
+    // Reset color
+    for (let obj of objects) {
+        obj.colorKey = "NOCOL";
     }
 
-    for (let k = 0; k < 3; k++) { // for each axis
-        let active = new Set();
-        let values = [];  // AABB min and max values
-        
-        for (let i = 0; i < objects.length; i++) {
-            let obj = objects[i];
-            values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
-            values.push([obj.position.array()[k] + obj.aabb, 'e', i]);  // max (end)
-        }
-        values.sort((a, b) => a[0] - b[0]);  // sort by values[0]
-
-        for (let i = 0; i < objects.length; i++) {  // initialize sets in overlap
-            overlap[i].push(new Set());
-        }
-
-        for (let l = 0; l < values.length; l++) {
-            let i = values[l][2];
-            if(values[l][1] == 'b') {
-                for(let j of active) {  // only add small index -> large index
-                    if(i < j) overlap[i][overlap[i].length - 1].add(j); 
-                    else overlap[j][overlap[j].length - 1].add(i);
-                }
-                active.add(i);
-            } else {
-                active.delete(i);
+    // Naive method O(n^2)
+    for (let i = 0; i < objects.length; ++i) {
+        for (let j = i + 1; j < objects.length; ++j) {
+            let o1 = objects[i];
+            let o2 = objects[j];
+            let dist = p5.Vector.sub(o1.position, o2.position).mag();
+            if(dist <= o1.aabb + o2.aabb) {
+                o1.colorKey = o2.colorKey = "BROAD";
+                narrowPhase(o1, o2);
             }
         }
     }
+
+    // // AABB Sort and Sweep O(nlogn)
+    // let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
+    // for (let i = 0; i < objects.length; i++) {
+    //     overlap.push([]);
+    // }
+
+    // for (let k = 0; k < 3; k++) { // for each axis
+    //     let active = new Set();
+    //     let values = [];  // AABB min and max values
+        
+    //     for (let i = 0; i < objects.length; i++) {
+    //         let obj = objects[i];
+    //         values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
+    //         values.push([obj.position.array()[k] + obj.aabb, 'e', i]);  // max (end)
+    //     }
+    //     values.sort((a, b) => a[0] - b[0]);  // sort by values[0]
+
+    //     for (let i = 0; i < objects.length; i++) {  // initialize sets in overlap
+    //         overlap[i].push(new Set());
+    //     }
+
+    //     for (let l = 0; l < values.length; l++) {
+    //         let i = values[l][2];
+    //         if(values[l][1] == 'b') {
+    //             for(let j of active) {  // only add small index -> large index
+    //                 if(i < j) overlap[i][overlap[i].length - 1].add(j); 
+    //                 else overlap[j][overlap[j].length - 1].add(i);
+    //             }
+    //             active.add(i);
+    //         } else {
+    //             active.delete(i);
+    //         }
+    //     }
+    // }
     
-    for (let i = 0; i < objects.length; i++) {
-        let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
-        // console.log(i);
-        // console.log(intersection);
-        for(let j in intersection) {  // i and j might collide
-            narrowPhase(objects[i], objects[j]);
-        }
-    }
+    // for (let i = 0; i < objects.length; i++) {
+    //     let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
+    //     console.log(i);
+    //     console.log(intersection);
+    //     for(let j in intersection) {  // i and j might collide
+    //         objects[i].colorKey = objects[j].colorKey = "BROAD";
+    //         narrowPhase(objects[i], objects[j]);
+    //     }
+    // }
 }
  
 
@@ -173,7 +178,7 @@ function checkIfCollisionSphereBox()
 class Obj {
     constructor(pos, vel, ...args) {
         // for display during collision
-        this.colorIndex = collisionStatus.NOCOL;
+        this.colorKey = "NOCOL";
 
         // for collision detection
         this.vertices = [];  // each element is vertex location as p5.Vector(x, y, z) 
@@ -216,7 +221,8 @@ class Obj {
     }
 
     render() {
-        specularMaterial(materials[this.colorIndex]);
+        // console.log(this.colorKey);
+        specularMaterial(materials[this.colorKey]);
         push();  // save camera
         translate(this.position);  // move camera
         switch (this.constructor) {  // render based on type
