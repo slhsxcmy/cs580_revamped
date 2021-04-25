@@ -9,7 +9,7 @@ function setup() {
     noStroke();
     ambientMaterial(255);
 
-    
+
     // // Demo 1 OK
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     // objects.push(new Box(createVector(100, 50, 0), createVector(-1, 0, 0), 50));
@@ -27,8 +27,8 @@ function setup() {
     // objects.push(new Box(createVector(150, 20, 0), createVector(-1, 0, 0), 100));
 
     // Demo 5 OK
-    objects.push(new Box(createVector(-0, 0, 0), createVector(1, 0, 0), 25));
-    objects.push(new Box(createVector(-250, 0, 0), createVector(1, 0, 0), 25));
+    // objects.push(new Box(createVector(-0, 0, 0), createVector(1, 0, 0), 25));
+    // objects.push(new Box(createVector(-250, 0, 0), createVector(1, 0, 0), 25));
     objects.push(new Box(createVector(-500, 0, 0), createVector(1, 0, 0), 25));
     objects.push(new Box(createVector(150, 20, 0), createVector(-1, 0, 0), 50));
 
@@ -432,10 +432,57 @@ function checkIfCollisionSphereBox()
     }
 }
 
+function multMatrix(A, B) {
+    let T = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+    for(let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+            for (let k = 0; k < 4.; k++) {
+                T[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+    return T;
+}
+function multVector(A, b) {
+	let t = [0,0,0,0];
+	for (let i = 0; i < 4; ++i) {
+		for (let j = 0; j < 4; ++j) {
+			t[i] += A[i][j] * b[j];
+		}
+	}
+    return t;
+}
 
+// https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Matrix_math_for_the_web
+function rotateAroundXAxis(a) {
+    return [
+            [1,       0,        0,     0],
+            [0,  cos(a),  -sin(a),     0],
+            [0,  sin(a),   cos(a),     0],
+            [0,       0,        0,     1]
+    ];
+}
+
+function rotateAroundYAxis(a) {
+    return [
+        [cos(a),   0, sin(a),   0],
+            [0,   1,      0,   0],
+        [-sin(a),   0, cos(a),   0],
+            [0,   0,      0,   1]
+    ];
+}
+
+function rotateAroundZAxis(a) {
+    return [
+        [cos(a), -sin(a),    0,    0],
+        [sin(a),  cos(a),    0,    0],
+            [0,       0,    1,    0],
+            [0,       0,    0,    1]
+    ];
+}
 
 class Obj {
-    constructor(pos, vel, ...args) {
+    constructor(pos, vel, apos, avel, ...args) {
         // for display during collision
         this.colorKey = "NOCOL";
 
@@ -446,12 +493,14 @@ class Obj {
 
         this.position = pos;  // p5.Vector
         this.velocity = vel;  // p5.Vector
+        this.angularPosition = apos;  // p5.Vector
+        this.angularVelocity = avel;  // p5.Vector
+
         this.args     = args;     // arguments, size or radius, etc.
         let x, y, z, r, h;
 
         switch (this.constructor) {  // AABB size based on shape type
             case Sphere:
-
                 r = args[0];
                 this.aabb = r;  // bounding box range: position ± aabb
                 break;
@@ -486,6 +535,7 @@ class Obj {
         specularMaterial(materials[this.colorKey]);
         push();  // save camera
         translate(this.position);  // move camera
+        rotate(this.angularPosition);
         // rotateY(90);
         switch (this.constructor) {  // render based on type
             case Sphere:    sphere   (...this.args); break;
@@ -500,12 +550,20 @@ class Obj {
     }
 
     move() {
+        for(let vert of this.vertexList) {
+            this.rot(vert);
+        }
+        this.angularPosition.add(this.angularVelocity);
         this.position.add(this.velocity);
-        // for (let i=0;i<this.vertexList.size;i++)
-        // {
-        //    this.vertexList[i].add(this.velocity);
-        // }
-        // this.updateFaceList();
+    }
+
+    rot(vert) {
+        let rotationMatrix = multMatrix(multMatrix(rotateAroundXAxis(this.angularPosition), rotateAroundYAxis(this.angularPosition)), rotateAroundZAxis(this.angularPosition));
+        let arr = vert.array();
+        arr.push(1);
+        arr = multVector(rotationMatrix, arr);
+        arr.pop();
+        this.vert = createVector(arr);
     }
 
     bounceBack(xRatio, yRatio, zRatio)
@@ -707,7 +765,27 @@ class Box extends Obj {
 
     }
 }
-class Plane     extends Obj {}
+class Plane extends Obj {
+    constructor(pos, vel, ...args) {
+        super(pos, vel, ...args);
+        this.faceList = [];
+        this.vertexList = [];
+        
+        let x = args[0];
+        let y = args[1 % args.length];
+        
+        this.vertexList.push(createVector(-(x/2), -(y/2), +(z/2))); // 0
+        this.vertexList.push(createVector(-(x/2), +(y/2), +(z/2))); // 1
+        this.vertexList.push(createVector(+(x/2), +(y/2), +(z/2))); // 2
+        this.vertexList.push(createVector(+(x/2), -(y/2), +(z/2))); // 3
+        this.vertexList.push(createVector(+(x/2), -(y/2), -(z/2))); // 4
+        this.vertexList.push(createVector(+(x/2), +(y/2), -(z/2))); // 5
+        this.vertexList.push(createVector(-(x/2), +(y/2), -(z/2))); // 6
+        this.vertexList.push(createVector(-(x/2), -(y/2), -(z/2))); // 7
+        console.log(this.vertexList);
+        this.updateFaceList();
+    }
+}
 class Cylinder  extends Obj {}
 class Cone      extends Obj {}
 class Torus     extends Obj {}
