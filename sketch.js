@@ -18,7 +18,7 @@ function setup() {
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
     //objects.push(new Box(createVector(100, 0, 100), createVector(0, 0, -1), 25));
-    objects.push(new Box(createVector(-75, 0, 0), createVector(0, 0, 0), 50));
+    objects.push(new Box(createVector(75, 0, 0), createVector(-1, 0, 0), 50));
 
     // objects.push(new Torus(createVector(200, 0, 0), createVector(0, 0, 0), 30, 1));
     
@@ -48,14 +48,14 @@ function draw() {
         obj.move();
     }
 
-    if (firstLoop)
-    {
-      narrowPhase(objects[0], objects[1]);
-      firstLoop = false;
-    }
+    // if (firstLoop)
+    // {
+    //   narrowPhase(objects[0], objects[1]);
+    //   firstLoop = false;
+    // }
 
   
-    // broadPhase();
+    broadPhase();
   
     //checkIfCollisionSphere();
     //checkIfCollisionBox();
@@ -144,39 +144,50 @@ function narrowPhase(o1, o2) {
    for (let i=0;i<o1.faceList.length;i++)
    {
       let currentFace = o1.faceList[i];
+    //   console.log(currentFace[0]);
+      let v0 = p5.Vector.add(o1.position, o1.vertexList[currentFace[0]]);
+      let v1 = p5.Vector.add(o1.position, o1.vertexList[currentFace[1]]);
+      let v2 = p5.Vector.add(o1.position, o1.vertexList[currentFace[2]]);
+      let v3 = p5.Vector.add(o1.position, o1.vertexList[currentFace[3]]);
+    //   console.log(o1);
+    //   console.log(v0);
     //   console.log(o1.vertexList);
       // // 2 edges of the square face
-      let edge1 = p5.Vector.sub(currentFace[1], currentFace[0]);
-      let edge2 = p5.Vector.sub(currentFace[2], currentFace[0]);
+      let edge1 = p5.Vector.sub(v1, v0);
+      let edge2 = p5.Vector.sub(v2, v0);
       let currentFaceNormal = createVector(((edge1.y * edge2.z) - (edge1.z * edge2.y)),
          ((edge1.z * edge2.x) - (edge1.x * edge2.z)),
          ((edge1.x * edge2.y) - (edge1.y * edge2.x)));
 
       // Normalize the vector
-      p5.Vector.normalize(currentFaceNormal);
+      currentFaceNormal.normalize();
       o1FaceNormals.push(currentFaceNormal);
-      o1FaceVertex.push(currentFace[0]);
+      o1FaceVertex.push(v0);
    }
 
    // Check if all vertices of object 2 are on the other side of a plane parallel to edges (from center) of object 1
    for (let i=0;i<o1.faceList.length;i++)
    {
       let currentFace = o1.faceList[i];
+      let v0 = p5.Vector.add(o1.position, o1.vertexList[currentFace[0]]);
+      let v1 = p5.Vector.add(o1.position, o1.vertexList[currentFace[1]]);
+      let v2 = p5.Vector.add(o1.position, o1.vertexList[currentFace[2]]);
+      let v3 = p5.Vector.add(o1.position, o1.vertexList[currentFace[3]]);
       // 4 edges on each face
       // Find vector from center of object to center-point between edges
 
       // edge 1 = currentFace[0] - currentFace[1]
-      let midEdge1 = p5.Vector.div(p5.Vector.add(currentFace[0], currentFace[1]), 2);
-      o1EdgeVertex.push(currentFace[0]);
+      let midEdge1 = p5.Vector.div(p5.Vector.add(v0, v1), 2);
+      o1EdgeVertex.push(v0);
       // edge 2 = currentFace[2] - currentFace[3]
-      let midEdge2 = p5.Vector.div(p5.Vector.add(currentFace[2], currentFace[3]), 2);
-      o1EdgeVertex.push(currentFace[2]);
+      let midEdge2 = p5.Vector.div(p5.Vector.add(v2, v3), 2);
+      o1EdgeVertex.push(v2);
       // edge 3 = currentFace[1] - currentFace[3]
-      let midEdge3 = p5.Vector.div(p5.Vector.add(currentFace[1], currentFace[3]), 2);
-      o1EdgeVertex.push(currentFace[1]);
+      let midEdge3 = p5.Vector.div(p5.Vector.add(v1, v3), 2);
+      o1EdgeVertex.push(v1);
       // edge 4 = currentFace[0] - currentFace[2]
-      let midEdge4 = p5.Vector.div(p5.Vector.add(currentFace[0], currentFace[2]), 2);
-      o1EdgeVertex.push(currentFace[0]);
+      let midEdge4 = p5.Vector.div(p5.Vector.add(v0, v2), 2);
+      o1EdgeVertex.push(v0);
 
       // Vector from center of object 1 to center-point between edges
       let vector1 = p5.Vector.sub(midEdge1, o1.position);
@@ -185,10 +196,10 @@ function narrowPhase(o1, o2) {
       let vector4 = p5.Vector.sub(midEdge4, o1.position);
 
       // Normalize the vectors
-      p5.Vector.normalize(vector1);
-      p5.Vector.normalize(vector2);
-      p5.Vector.normalize(vector3);
-      p5.Vector.normalize(vector4);
+      vector1.normalize();
+      vector2.normalize();
+      vector3.normalize();
+      vector4.normalize();
       o1EdgeVectors.push(vector1);
       o1EdgeVectors.push(vector2);
       o1EdgeVectors.push(vector3);
@@ -199,51 +210,78 @@ function narrowPhase(o1, o2) {
    for (let i=0;i<o1.faceList.length;i++)
    {
       let currentFace = o1.faceList[i];
+      let v0 = p5.Vector.add(o1.position, o1.vertexList[currentFace[0]]);
+      let v1 = p5.Vector.add(o1.position, o1.vertexList[currentFace[1]]);
+      let v2 = p5.Vector.add(o1.position, o1.vertexList[currentFace[2]]);
+      let v3 = p5.Vector.add(o1.position, o1.vertexList[currentFace[3]]);
       // 4 vertices on each face
       // Find vector from center of object to each vertex
 
-      let vector1 = p5.Vector.sub(currentFace[0], o1.position);
-      let vector2 = p5.Vector.sub(currentFace[1], o1.position);
-      let vector3 = p5.Vector.sub(currentFace[2], o1.position);
-      let vector4 = p5.Vector.sub(currentFace[3], o1.position);
+      let vector1 = p5.Vector.sub(v0, o1.position);
+      let vector2 = p5.Vector.sub(v1, o1.position);
+      let vector3 = p5.Vector.sub(v2, o1.position);
+      let vector4 = p5.Vector.sub(v3, o1.position);
 
       // Normalize the vectors
-      p5.Vector.normalize(vector1);
-      p5.Vector.normalize(vector2);
-      p5.Vector.normalize(vector3);
-      p5.Vector.normalize(vector4);
+      vector1.normalize();
+      vector2.normalize();
+      vector3.normalize();
+      vector4.normalize();
       o1CornerVectors.push(vector1);
       o1CornerVectors.push(vector2);
       o1CornerVectors.push(vector3);
       o1CornerVectors.push(vector4);
-      o1CornerVertex.push(currentFace[0]);
-      o1CornerVertex.push(currentFace[1]);
-      o1CornerVertex.push(currentFace[2]);
-      o1CornerVertex.push(currentFace[3]);
+      o1CornerVertex.push(v0);
+      o1CornerVertex.push(v1);
+      o1CornerVertex.push(v2);
+      o1CornerVertex.push(v3);
    }
 
+    console.log(o1FaceNormals);
+    console.log(o1EdgeVectors);
+    console.log(o1CornerVectors);
+    console.log(o1FaceVertex);
+    console.log(o1EdgeVertex);
+    console.log(o1CornerVertex);
+   
+
+   let o2verticeCoords = [];
+   for (let j=0;j<o2.vertexList.length;j++){
+       o2verticeCoords.push(p5.Vector.add(o2.position, o2.vertexList[j]));
+   }
    // Check if all vertices of object 2 are in front of one of the face normals
    // (v - a) DOT N
    overlapping = true;
    // Loop over every face normal from object 1
    for (let i=0;i<o1FaceNormals.length;i++)
    {
-      let allVerticesInFrontOfFace = true;
-      for (let j=0;j<o2.vertexList.length;j++)
-      {
-         let currentVal = p5.Vector.dot(p5.Vector.sub(o2.vertexList[j], o1FaceVertex[i]), o1FaceNormals[i]);
-         if (currentVal <= 0)
-         {
-            // Current o2 vertex is NOT in front of o1 face normal. Try another o1 Face
-            allVerticesInFrontOfFace = false;
+        console.log(i);
+        let allVerticesInFrontOfFace = true;
+        for (let j=0;j<o2.vertexList.length;j++)
+        {
+            let currentVal = p5.Vector.dot(p5.Vector.sub(o2verticeCoords[j], o1FaceVertex[i]), o1FaceNormals[i]);
+            if (currentVal <= 0)
+            {
+                // Current o2 vertex is NOT in front of o1 face normal. Try another o1 Face
+                allVerticesInFrontOfFace = false;
+                break;
+            }
+            if (i==4)
+            {
+                console.log(p5.Vector.sub(o2verticeCoords[j]));
+                console.log(p5.Vector.sub(o1FaceVertex[i]));
+                console.log(p5.Vector.sub(o2verticeCoords[j], o1FaceVertex[i]));
+                console.log(o1FaceNormals[i]);
+                console.log(currentVal);
+            }
+        }
+        console.log(allVerticesInFrontOfFace);
+        if (allVerticesInFrontOfFace)
+        {
+            console.log("hit");
+            overlapping = false;
             break;
-         }
-      }
-      if (allVerticesInFrontOfFace)
-      {
-         overlapping = false;
-         break;
-      }
+        }
    }
 
    // If haven't found a separating plane yet, check edge planes
@@ -254,7 +292,7 @@ function narrowPhase(o1, o2) {
          let allVerticesInFrontOfEdge = true;
          for (let j=0;j<o2.vertexList.length;j++)
          {
-            let currentVal = p5.Vector.dot(p5.Vector.sub(o2.vertexList[j], o1EdgeVertex[i]), o1EdgeVectors[i]);
+            let currentVal = p5.Vector.dot(p5.Vector.sub(o2verticeCoords[j], o1EdgeVertex[i]), o1EdgeVectors[i]);
             if (currentVal <= 0)
             {
                // Current o2 vertex is NOT in front of o1 edge normal. Try another o1 Edge Normal
@@ -278,7 +316,7 @@ function narrowPhase(o1, o2) {
          let allVerticesInFrontOfCorner = true;
          for (let j=0;j<o2.vertexList.length;j++)
          {
-            let currentVal = p5.Vector.dot(p5.Vector.sub(o2.vertexList[j], o1CornerVertex[i]), o1CornerVectors[i]);
+            let currentVal = p5.Vector.dot(p5.Vector.sub(o2verticeCoords[j], o1CornerVertex[i]), o1CornerVectors[i]);
             if (currentVal <= 0)
             {
                // Current o2 vertex is NOT in front of o1 corner normal. Try another o1 Corner Normal
@@ -378,8 +416,6 @@ class Obj {
         this.args     = args;     // arguments, size or radius, etc.
         let x, y, z, r, h;
       
-        this.faceList = [];
-        this.vertexList = [];
         switch (this.constructor) {  // AABB size based on shape type
             case Sphere:    
 
@@ -391,17 +427,6 @@ class Obj {
                 y = args[1 % args.length];
                 z = args[args.length - 1];
                 this.aabb = createVector(x, y, z).mag();
-                // 8 unique vertices in Box
-                this.vertexList.push(createVector(this.position.x+(x/2), this.position.y+(y/2), this.position.z+(z/2)));
-                this.vertexList.push(createVector(this.position.x+(x/2), this.position.y+(y/2), this.position.z-(z/2)));
-                this.vertexList.push(createVector(this.position.x+(x/2), this.position.y-(y/2), this.position.z+(z/2)));
-                this.vertexList.push(createVector(this.position.x+(x/2), this.position.y-(y/2), this.position.z-(z/2)));
-                this.vertexList.push(createVector(this.position.x-(x/2), this.position.y+(y/2), this.position.z+(z/2)));
-                this.vertexList.push(createVector(this.position.x-(x/2), this.position.y+(y/2), this.position.z-(z/2)));
-                this.vertexList.push(createVector(this.position.x-(x/2), this.position.y-(y/2), this.position.z+(z/2)));
-                this.vertexList.push(createVector(this.position.x-(x/2), this.position.y-(y/2), this.position.z-(z/2)));
-                console.log(this.vertexList);
-                this.updateFaceList();
                 break;
             case Plane:
                 x = args[0];
@@ -423,29 +448,12 @@ class Obj {
         }
     }
 
-    updateFaceList()
-    {
-      this.faceList = [];
-      let face1 = [this.vertexList[0], this.vertexList[2], this.vertexList[4], this.vertexList[6]];
-      let face2 = [this.vertexList[5], this.vertexList[7], this.vertexList[1], this.vertexList[3]];
-      let face3 = [this.vertexList[1], this.vertexList[0], this.vertexList[5], this.vertexList[4]];
-      let face4 = [this.vertexList[7], this.vertexList[6], this.vertexList[3], this.vertexList[2]];
-      let face5 = [this.vertexList[0], this.vertexList[2], this.vertexList[1], this.vertexList[3]];
-      let face6 = [this.vertexList[5], this.vertexList[7], this.vertexList[4], this.vertexList[6]];
-      this.faceList.push(face1);
-      this.faceList.push(face2);
-      this.faceList.push(face3);
-      this.faceList.push(face4);
-      this.faceList.push(face5);
-      this.faceList.push(face6);
-    }
-
     render() {
         // console.log(this.colorKey);
         specularMaterial(materials[this.colorKey]);
         push();  // save camera
         translate(this.position);  // move camera
-        rotateY(90);
+        // rotateY(90);
         switch (this.constructor) {  // render based on type
             case Sphere:    sphere   (...this.args); break;
             case Box:       box      (...this.args); break;
@@ -460,11 +468,11 @@ class Obj {
 
     move() {
         this.position.add(this.velocity);
-        for (let i=0;i<this.vertexList.size;i++)
-        {
-           this.vertexList[i].add(this.velocity);
-        }
-        this.updateFaceList();
+        // for (let i=0;i<this.vertexList.size;i++)
+        // {
+        //    this.vertexList[i].add(this.velocity);
+        // }
+        // this.updateFaceList();
     }
 
     bounceBack(xRatio, yRatio, zRatio)
@@ -606,7 +614,59 @@ class Sphere extends Obj {
         return faceVertices;
     }
 }
-class Box       extends Obj {}
+class Box extends Obj {
+    constructor(pos, vel, ...args) {
+        super(pos, vel, ...args);
+        this.faceList = [];
+        this.vertexList = [];
+
+        // 8 unique vertices in Box
+        // this.vertexList.push(createVector(this.position.x+(x/2), this.position.y+(y/2), this.position.z+(z/2)));
+        // this.vertexList.push(createVector(this.position.x+(x/2), this.position.y+(y/2), this.position.z-(z/2)));
+        // this.vertexList.push(createVector(this.position.x+(x/2), this.position.y-(y/2), this.position.z+(z/2)));
+        // this.vertexList.push(createVector(this.position.x+(x/2), this.position.y-(y/2), this.position.z-(z/2)));
+        // this.vertexList.push(createVector(this.position.x-(x/2), this.position.y+(y/2), this.position.z+(z/2)));
+        // this.vertexList.push(createVector(this.position.x-(x/2), this.position.y+(y/2), this.position.z-(z/2)));
+        // this.vertexList.push(createVector(this.position.x-(x/2), this.position.y-(y/2), this.position.z+(z/2)));
+        // this.vertexList.push(createVector(this.position.x-(x/2), this.position.y-(y/2), this.position.z-(z/2)));
+        let x = args[0];
+        let y = args[1 % args.length];
+        let z = args[args.length - 1];
+        this.vertexList.push(createVector(+(x/2), +(y/2), +(z/2)));
+        this.vertexList.push(createVector(+(x/2), +(y/2), -(z/2)));
+        this.vertexList.push(createVector(+(x/2), -(y/2), +(z/2)));
+        this.vertexList.push(createVector(+(x/2), -(y/2), -(z/2)));
+        this.vertexList.push(createVector(-(x/2), +(y/2), +(z/2)));
+        this.vertexList.push(createVector(-(x/2), +(y/2), -(z/2)));
+        this.vertexList.push(createVector(-(x/2), -(y/2), +(z/2)));
+        this.vertexList.push(createVector(-(x/2), -(y/2), -(z/2)));
+        console.log(this.vertexList);
+        this.updateFaceList();
+    }
+
+    updateFaceList()
+    {
+    //   this.faceList = [];
+    //   let face1 = [this.vertexList[0], this.vertexList[2], this.vertexList[4], this.vertexList[6]];
+    //   let face2 = [this.vertexList[5], this.vertexList[7], this.vertexList[1], this.vertexList[3]];
+    //   let face3 = [this.vertexList[1], this.vertexList[0], this.vertexList[5], this.vertexList[4]];
+    //   let face4 = [this.vertexList[7], this.vertexList[6], this.vertexList[3], this.vertexList[2]];
+    //   let face5 = [this.vertexList[0], this.vertexList[2], this.vertexList[1], this.vertexList[3]];
+    //   let face6 = [this.vertexList[5], this.vertexList[7], this.vertexList[4], this.vertexList[6]];
+      let face1 = [0, 2, 4, 6];
+      let face2 = [5, 7, 1, 3];
+      let face3 = [1, 0, 5, 4];
+      let face4 = [7, 6, 3, 2];
+      let face5 = [0, 2, 1, 3];
+      let face6 = [5, 7, 4, 6];
+      this.faceList.push(face1);
+      this.faceList.push(face2);
+      this.faceList.push(face3);
+      this.faceList.push(face4);
+      this.faceList.push(face5);
+      this.faceList.push(face6);
+    }
+}
 class Plane     extends Obj {}
 class Cylinder  extends Obj {}
 class Cone      extends Obj {}
