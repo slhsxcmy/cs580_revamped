@@ -15,7 +15,7 @@ function setup() {
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
-    objects.push(new Box(createVector(0, 0, 0), createVector(-1, 0, 0), 50));
+    objects.push(new Box(createVector(-40, 0, 0), createVector(0, 0, 0), 50));
     objects.push(new Box(createVector(-100, 0, 0), createVector(0, 0, 0), 50));
 
     // Create the Vertices for both objects
@@ -120,17 +120,20 @@ function narrowPhase(o1, o2) {
    for (let i=0;i<o1.faceList.length;i++)
    {
       let currentFace = o1.faceList[i];
-      console.log(currentFace);
+      //console.log(currentFace);
       // // 2 edges of the square face
       let edge1 = p5.Vector.sub(currentFace[1], currentFace[0]);
       let edge2 = p5.Vector.sub(currentFace[2], currentFace[0]);
-      console.log(edge1);
-      console.log(edge2);
-      let currentFaceNormal = [];
-      currentFaceNormal[0] = ((edge1.y * edge2.z) - (edge1.z * edge2.y));
-      currentFaceNormal[1] = ((edge1.z * edge2.x) - (edge1.x * edge2.z));
-      currentFaceNormal[2] = ((edge1.x * edge2.y) - (edge1.y * edge2.x));
-      console.log(currentFaceNormal);
+      //console.log(edge1);
+      //console.log(edge2);
+      let currentFaceNormal = createVector(((edge1.y * edge2.z) - (edge1.z * edge2.y)),
+         ((edge1.z * edge2.x) - (edge1.x * edge2.z)),
+         ((edge1.x * edge2.y) - (edge1.y * edge2.x)));
+      // currentFaceNormal[0] = ((edge1.y * edge2.z) - (edge1.z * edge2.y));
+      // currentFaceNormal[1] = ((edge1.z * edge2.x) - (edge1.x * edge2.z));
+      // currentFaceNormal[2] = ((edge1.x * edge2.y) - (edge1.y * edge2.x));
+      // Normalize the vector
+      p5.Vector.normalize(currentFaceNormal);
       o1FaceNormals.push(currentFaceNormal);
       o1FaceVertex.push(currentFace[0]);
    }
@@ -144,7 +147,10 @@ function narrowPhase(o1, o2) {
       let allVerticesInFrontOfFace = true;
       for (let j=0;j<o2.vertexList.length;j++)
       {
+         //console.log(o2.vertexList[j]);
+         //console.log(o1FaceVertex[i]);
          let currentVal = p5.Vector.dot(p5.Vector.sub(o2.vertexList[j], o1FaceVertex[i]), o1FaceNormals[i]);
+         console.log(currentVal);
          if (currentVal > 0)
          {
             // current o2 vertex is in front of the o1 face normal. Continue checking o2 vertices
