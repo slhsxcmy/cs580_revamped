@@ -18,7 +18,7 @@ function setup() {
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
     //objects.push(new Box(createVector(100, 0, 100), createVector(0, 0, -1), 25));
-    objects.push(new Box(createVector(75, 0, 0), createVector(-1, 0, 0), 50));
+    objects.push(new Box(createVector(75, -125, 0), createVector(-1, 1, 0), 50));
 
     // objects.push(new Torus(createVector(200, 0, 0), createVector(0, 0, 0), 30, 1));
     
@@ -81,7 +81,7 @@ function broadPhase() {
         }
     }
 
-    // // AABB Sort and Sweep O(nlogn)
+    // // FIXME: AABB Sort and Sweep O(nlogn)
     // let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
     // for (let i = 0; i < objects.length; i++) {
     //     overlap.push([]);
@@ -131,7 +131,7 @@ function broadPhase() {
 
 function narrowPhase(o1, o2) {
     // let o1, o2;
-    // if(obj1.faceList.length <= obj2.faceList.length) {  // object with fewer faces should be o1
+    // if(obj1.faceList.length <= obj2.faceList.length) {  // FIXME: object with fewer faces should be o1
     //     o1 = obj1;
     //     o2 = obj2;
     // } else {
@@ -149,9 +149,9 @@ function narrowPhase(o1, o2) {
    let o1EdgeVertex = [];
    let o1CornerVertex = [];
 
-   for (let i=0;i<o1.vertexList.length;i++){
-    console.log(o1.vertexList[i]);
-   }
+//    for (let i=0;i<o1.vertexList.length;i++){
+//         console.log(o1.vertexList[i]);
+//    }
 
    // Check if all vertices of object 2 are on the other side of a plane parallel to the faces of object 1
    for (let i=0;i<o1.faceList.length;i++)
