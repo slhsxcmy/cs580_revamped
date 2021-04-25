@@ -1,4 +1,7 @@
 const objects = [];
+const faces = [];
+firstLoop = true;
+
 
 function setup() {
     createCanvas(windowWidth, windowHeight, WEBGL);
@@ -7,17 +10,20 @@ function setup() {
     ambientMaterial(255);
 
 
-    objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
+    //objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
 
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
 
-    objects.push(new Box(createVector(100, 0, 0), createVector(-1, 0, 0), 25));
+    objects.push(new Box(createVector(0, 0, 0), createVector(-1, 0, 0), 50));
     objects.push(new Box(createVector(-100, 0, 0), createVector(0, 0, 0), 50));
+
+    // Create the Vertices for both objects
+
 
     //objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
 
-    objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
+    //objects.push(new Torus(createVector(100, 0, 0), createVector(0, 0, 0), 30, 1));
 
     console.log(objects[0].constructor === Sphere);  // or instanceof
     console.log(objects[0].constructor === Box);
@@ -35,7 +41,12 @@ function draw() {
         obj.move();
     }
 
-    broadPhase();
+    //broadPhase();
+    if (firstLoop)
+    {
+      narrowPhase(objects[0], objects[1]);
+      firstLoop = false;
+    }
 
     //checkIfCollisionSphere();
     //checkIfCollisionBox();
@@ -89,8 +100,8 @@ function broadPhase() {
 
     for (let i = 0; i < objects.length; i++) {
         let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
-        console.log(i);
-        console.log(intersection);
+        //console.log(i);
+        //console.log(intersection);
         for(let j in intersection) {  // i and j might collide
             narrowPhase(objects[i], objects[j]);
         }
@@ -99,25 +110,42 @@ function broadPhase() {
 
 
 function narrowPhase(o1, o2) {
+   console.log("Called Narrow Phase")
    // Separating Axis Theorem
    // Calculate Surface Normals of each face on object 1
    let o1FaceNormals = [];
-
    // one vertex on each face. Indeces match up with face normals object
    let o1FaceVertex = [];
 
+   for (let i=0;i<o1.faceList.length;i++)
+   {
+      let currentFace = o1.faceList[i];
+      console.log(currentFace);
+      // // 2 edges of the square face
+      let edge1 = p5.Vector.sub(currentFace[1], currentFace[0]);
+      let edge2 = p5.Vector.sub(currentFace[2], currentFace[0]);
+      console.log(edge1);
+      console.log(edge2);
+      let currentFaceNormal = [];
+      currentFaceNormal[0] = ((edge1.y * edge2.z) - (edge1.z * edge2.y));
+      currentFaceNormal[1] = ((edge1.z * edge2.x) - (edge1.x * edge2.z));
+      currentFaceNormal[2] = ((edge1.x * edge2.y) - (edge1.y * edge2.x));
+      console.log(currentFaceNormal);
+      o1FaceNormals.push(currentFaceNormal);
+      o1FaceVertex.push(currentFace[0]);
+   }
+
    // Check if all vertices of object 2 are in front of one of the face normals
-   let o2AllVertices = []
    // (v - a) DOT N
    overlapping = true;
    // Loop over every face normal from object 1
-   for (let i=0;i<o1FaceNormals.size;i++)
+   for (let i=0;i<o1FaceNormals.length;i++)
    {
       let allVerticesInFrontOfFace = true;
-      for (let j=0;j<o2AllVertices.size;j++)
+      for (let j=0;j<o2.vertexList.length;j++)
       {
-         let currentVal = (o2AllVertices[j] - o1FaceVertex[i]) DOT_PRODUCT o1FaceNormals[i]
-         if (currenVal > 0)
+         let currentVal = p5.Vector.dot(p5.Vector.sub(o2.vertexList[j], o1FaceVertex[i]), o1FaceNormals[i]);
+         if (currentVal > 0)
          {
             // current o2 vertex is in front of the o1 face normal. Continue checking o2 vertices
          }
@@ -137,10 +165,12 @@ function narrowPhase(o1, o2) {
 
    if (overlapping)
    {
+      console.log("overlapping");
       return true;
    }
    else
    {
+      console.log("not overlapping");
       return false;
    }
 }
@@ -206,6 +236,8 @@ class Obj {
         this.velocity = vel;  // p5.Vector
         this.args     = args;     // arguments, size or radius, etc.
         let x, y, z, r, h;
+        this.faceList = []
+        this.vertexList = []
         switch (this.constructor) {  // render based on type
             case Sphere:
                 r = args[0];
@@ -216,6 +248,16 @@ class Obj {
                 y = args[1 % args.length];
                 z = args[args.length - 1];
                 this.aabb = createVector(x, y, z).mag();
+                // 8 unique vertices in Box
+                this.vertexList.push(createVector(this.position.x+(x/2), this.position.y+(y/2), this.position.z+(z/2)));
+                this.vertexList.push(createVector(this.position.x+(x/2), this.position.y+(y/2), this.position.z-(z/2)));
+                this.vertexList.push(createVector(this.position.x+(x/2), this.position.y-(y/2), this.position.z+(z/2)));
+                this.vertexList.push(createVector(this.position.x+(x/2), this.position.y-(y/2), this.position.z-(z/2)));
+                this.vertexList.push(createVector(this.position.x-(x/2), this.position.y+(y/2), this.position.z+(z/2)));
+                this.vertexList.push(createVector(this.position.x-(x/2), this.position.y+(y/2), this.position.z-(z/2)));
+                this.vertexList.push(createVector(this.position.x-(x/2), this.position.y-(y/2), this.position.z+(z/2)));
+                this.vertexList.push(createVector(this.position.x-(x/2), this.position.y-(y/2), this.position.z-(z/2)));
+                this.updateFaceList();
                 break;
             case Plane:
                 x = args[0];
@@ -237,6 +279,23 @@ class Obj {
         }
     }
 
+    updateFaceList()
+    {
+      this.faceList = [];
+      let face1 = [this.vertexList[0], this.vertexList[2], this.vertexList[4], this.vertexList[6]];
+      let face2 = [this.vertexList[5], this.vertexList[7], this.vertexList[1], this.vertexList[3]];
+      let face3 = [this.vertexList[1], this.vertexList[0], this.vertexList[5], this.vertexList[4]];
+      let face4 = [this.vertexList[7], this.vertexList[6], this.vertexList[3], this.vertexList[2]];
+      let face5 = [this.vertexList[0], this.vertexList[2], this.vertexList[1], this.vertexList[3]];
+      let face6 = [this.vertexList[5], this.vertexList[7], this.vertexList[4], this.vertexList[6]];
+      this.faceList.push(face1);
+      this.faceList.push(face2);
+      this.faceList.push(face3);
+      this.faceList.push(face4);
+      this.faceList.push(face5);
+      this.faceList.push(face6);
+    }
+
     render() {
         push();  // save camera
         translate(this.position);  // move camera
@@ -254,15 +313,17 @@ class Obj {
 
     move() {
         this.position.add(this.velocity);
+        for (let i=0;i<this.vertexList.size;i++)
+        {
+           this.vertexList[i].add(this.velocity);
+        }
+        this.updateFaceList();
     }
 
     bounceBack(xRatio, yRatio, zRatio)
     {
         let summedSpeeds = Math.abs(this.velocity.x) + Math.abs(this.velocity.y) + Math.abs(this.velocity.z)
-        this.velocity.x
-
-
-          = summedSpeeds * xRatio;
+        this.velocity.x = summedSpeeds * xRatio;
         this.velocity.y = summedSpeeds * yRatio;
         this.velocity.z = summedSpeeds * zRatio;
     }
