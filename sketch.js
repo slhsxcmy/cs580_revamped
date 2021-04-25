@@ -5,7 +5,7 @@ firstLoop = true;
 
 function setup() {
     createCanvas(windowWidth, windowHeight, WEBGL);
-
+    
     noStroke();
     ambientMaterial(255);
 
@@ -18,13 +18,27 @@ function setup() {
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     // objects.push(new Box(createVector(100, 45, 0), createVector(-1, 0, 0), 50));
 
-    // // Demo 3
-    // objects.push(new Sphere(createVector(-75, -100, 0), createVector(0.5, 0.5, 0), 50));
-    // objects.push(new Sphere(createVector(75, 100, 0), createVector(-0.5, -0.5, 0), 50));
+    // // Demo 3 OK
+    // objects.push(new Sphere(createVector(-50, -100, 0), createVector(0.5, 0.5, 0), 50));
+    // objects.push(new Sphere(createVector(100, 100, 0), createVector(-0.5, -0.5, 0), 50));
 
-    // Demo 4
-    objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
-    objects.push(new Box(createVector(100, 50, 0), createVector(-1, 0, 0), 50));
+    // // Demo 4 OK
+    // objects.push(new Box(createVector(-50, -20, 0), createVector(1, 0.3, 0), 50));
+    // objects.push(new Box(createVector(150, 20, 0), createVector(-1, 0, 0), 100));
+
+    // Demo 5 OK
+    objects.push(new Box(createVector(-0, 0, 0), createVector(1, 0, 0), 25));
+    objects.push(new Box(createVector(-250, 0, 0), createVector(1, 0, 0), 25));
+    objects.push(new Box(createVector(-500, 0, 0), createVector(1, 0, 0), 25));
+    objects.push(new Box(createVector(150, 20, 0), createVector(-1, 0, 0), 50));
+
+    // // Demo 6 
+    // objects.push(new Sphere(createVector(-150, 0, 0), createVector(1, 0, 0), 25));
+    // objects.push(new Sphere(createVector(150, 0, 0), createVector(-1, 0, 0), 25));
+    // objects.push(new Sphere(createVector(0, 150, 0), createVector(0, -1, 0), 25));
+    // objects.push(new Sphere(createVector(0, -150, 0), createVector(0, 1, 0), 25));
+
+    
 
 }
 
@@ -252,12 +266,12 @@ function narrowPhase(o1, o2) {
     //   o1CornerVertex.push(v3);
    }
 
-    // console.log(o1FaceNormals);
-    // console.log(o1EdgeVectors);
-    // console.log(o1CornerVectors);
-//     console.log(o1FaceVertex);
-    // console.log(o1EdgeVertex);
-    // console.log(o1CornerVertex);
+    console.log(o1FaceNormals);
+    console.log(o1EdgeVectors);
+    console.log(o1CornerVectors);
+    console.log(o1FaceVertex);
+    console.log(o1EdgeVertex);
+    console.log(o1CornerVertex);
   
 
    let o2verticeCoords = [];
@@ -282,12 +296,12 @@ function narrowPhase(o1, o2) {
                 allVerticesInFrontOfFace = false;
                 break;
             }
-            if (i==5)
+            if (i==10)
             {
                 console.log(p5.Vector.sub(o2verticeCoords[j]));
                 console.log(p5.Vector.sub(o1FaceVertex[i]));
-                // console.log(p5.Vector.sub(o2verticeCoords[j], o1FaceVertex[i]));
-                // console.log(o1FaceNormals[i]);
+                console.log(p5.Vector.sub(o2verticeCoords[j], o1FaceVertex[i]));
+                console.log(o1FaceNormals[i]);
                 console.log("dot: " + currentVal);
             }
         }
@@ -546,9 +560,6 @@ class Sphere extends Obj {
         this.faceList.push([0, 1, 7]);
         this.faceList.push([0, 7, 10]);
         this.faceList.push([0, 10, 11]);
-
-
-      
       
         // 5 adjacent faces 
         this.faceList.push([1, 5, 9]);
@@ -662,85 +673,34 @@ class Box extends Obj {
         let x = args[0];
         let y = args[1 % args.length];
         let z = args[args.length - 1];
-        this.vertexList.push(createVector(+(x/2), +(y/2), +(z/2))); // 0
-        this.vertexList.push(createVector(+(x/2), +(y/2), -(z/2))); // 1
-        this.vertexList.push(createVector(+(x/2), -(y/2), +(z/2))); // 2
-        this.vertexList.push(createVector(+(x/2), -(y/2), -(z/2))); // 3
-        this.vertexList.push(createVector(-(x/2), +(y/2), +(z/2))); // 4
-        this.vertexList.push(createVector(-(x/2), +(y/2), -(z/2))); // 5
-        this.vertexList.push(createVector(-(x/2), -(y/2), +(z/2))); // 6
+        
+        this.vertexList.push(createVector(-(x/2), -(y/2), +(z/2))); // 0
+        this.vertexList.push(createVector(-(x/2), +(y/2), +(z/2))); // 1
+        this.vertexList.push(createVector(+(x/2), +(y/2), +(z/2))); // 2
+        this.vertexList.push(createVector(+(x/2), -(y/2), +(z/2))); // 3
+        this.vertexList.push(createVector(+(x/2), -(y/2), -(z/2))); // 4
+        this.vertexList.push(createVector(+(x/2), +(y/2), -(z/2))); // 5
+        this.vertexList.push(createVector(-(x/2), +(y/2), -(z/2))); // 6
         this.vertexList.push(createVector(-(x/2), -(y/2), -(z/2))); // 7
         console.log(this.vertexList);
         this.updateFaceList();
     }
 
     updateFaceList()
-    {
-    //   this.faceList = [];
-    //   let face1 = [this.vertexList[0], this.vertexList[2], this.vertexList[4], this.vertexList[6]];
-    //   let face2 = [this.vertexList[5], this.vertexList[7], this.vertexList[1], this.vertexList[3]];
-    //   let face3 = [this.vertexList[1], this.vertexList[0], this.vertexList[5], this.vertexList[4]];
-    //   let face4 = [this.vertexList[7], this.vertexList[6], this.vertexList[3], this.vertexList[2]];
-    //   let face5 = [this.vertexList[0], this.vertexList[2], this.vertexList[1], this.vertexList[3]];
-    //   let face6 = [this.vertexList[5], this.vertexList[7], this.vertexList[4], this.vertexList[6]];
-    // let face1 = [0, 2, 4, 6];
-    // let face2 = [5, 7, 1, 3];
-    // let face3 = [1, 0, 5, 4];
-    // let face4 = [7, 6, 3, 2];
-    // let face5 = [0, 2, 1, 3];
-    // let face6 = [5, 7, 4, 6];
-    
-    //   // front
-    //   let face1 = [4, 2, 0];
-    //   let face2 = [2, 4, 6];
-    //   // back
-    //   let face3 = [1, 7, 5];
-    //   let face4 = [7, 1, 3];
-    //   // top
-    //   let face5 = [5, 0, 1];
-    //   let face6 = [0, 5, 4];
-    //   // bottom
-    //   let face7 = [3, 6, 7];
-    //   let face8 = [6, 3, 2];
-    //   // right
-    //   let face9 = [1, 2, 0];
-    //   let face10 = [2, 1, 3];
-    //   // left
-    //   let face11 = [4, 7, 5];
-    //   let face12 = [7, 4, 6];
-
-    // front
-    let face1 = [0, 4, 2];
-    let face2 = [4, 6, 2];
-    // back
-    let face3 = [5, 1, 3];
-    let face4 = [5, 3, 7];
-    // top
-    let face5 = [4, 1, 0];
-    let face6 = [4, 5, 1];
-    // bottom
-    let face7 = [6, 2, 3];
-    let face8 = [6, 3, 7];
-    // right
-    let face9 = [0, 1, 2];
-    let face10 = [1, 3, 2];
-    // left
-    let face11 = [5, 4, 6];
-    let face12 = [7, 5, 6];
-
-    
-      this.faceList.push(face1);
-      this.faceList.push(face2);
-      this.faceList.push(face3);
-      this.faceList.push(face4);
-      this.faceList.push(face5);
-      this.faceList.push(face6);
-      this.faceList.push(face7);
-      this.faceList.push(face8);
-      this.faceList.push(face9);
-      this.faceList.push(face10);
-      this.faceList.push(face11);
-      this.faceList.push(face12);
+    {    
+    // http://ilkinulas.github.io/development/unity/2016/04/30/cube-mesh-in-unity3d.html flipped by x = y
+      this.faceList.push([0, 2, 1]);
+      this.faceList.push([0, 3, 2]);
+      this.faceList.push([2, 3, 4]);
+      this.faceList.push([2, 4, 5]);
+      this.faceList.push([1, 2, 5]);
+      this.faceList.push([1, 5, 6]);
+      this.faceList.push([0, 7, 4]);
+      this.faceList.push([0, 4, 3]);
+      this.faceList.push([5, 4, 7]);
+      this.faceList.push([5, 7, 6]);
+      this.faceList.push([0, 6, 7]);
+      this.faceList.push([0, 1, 6]);
 
     }
 }
