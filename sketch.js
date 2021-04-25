@@ -233,8 +233,7 @@ function narrowPhase(o1, o2) {
          let allVerticesInFrontOfEdge = true;
          for (let j=0;j<o2.vertexList.length;j++)
          {
-            let currentVal = p5.Vector.dot(p5.Vector.sub(o2.VertexList[j], o1EdgeVertex[i]), o1EdgeVectors[i]);
-            console.log(currentVal);
+            let currentVal = p5.Vector.dot(p5.Vector.sub(o2.vertexList[j], o1EdgeVertex[i]), o1EdgeVectors[i]);
             if (currentVal <= 0)
             {
                // Current o2 vertex is NOT in front of o1 edge normal. Try another o1 Edge Normal
@@ -258,8 +257,7 @@ function narrowPhase(o1, o2) {
          let allVerticesInFrontOfCorner = true;
          for (let j=0;j<o2.vertexList.length;j++)
          {
-            let currentVal = p5.Vector.dot(p5.Vector.sub(o2.VertexList[j], o1CornerVertex[i]), o1CornerVectors[i]);
-            console.log(currentVal);
+            let currentVal = p5.Vector.dot(p5.Vector.sub(o2.vertexList[j], o1CornerVertex[i]), o1CornerVectors[i]);
             if (currentVal <= 0)
             {
                // Current o2 vertex is NOT in front of o1 corner normal. Try another o1 Corner Normal
@@ -412,6 +410,7 @@ class Obj {
     render() {
         push();  // save camera
         translate(this.position);  // move camera
+        rotateY(90);
         switch (this.constructor) {  // render based on type
             case Sphere:    sphere   (...this.args); break;
             case Box:       box      (...this.args); break;
