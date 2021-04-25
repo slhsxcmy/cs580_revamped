@@ -8,37 +8,33 @@ function setup() {
     
     noStroke();
     ambientMaterial(255);
-
+    camera((width/2.0), 0, (height/2.0) / tan(PI*30.0 / 180.0), 0, 0, 0, 0, 1, 0);
 
     // // Demo 1 OK
-    // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
-    // objects.push(new Box(createVector(100, 50, 0), createVector(-1, 0, 0), 50));
+    // objects.push(new Box(createVector(100, 100, 0), createVector(-1, 0, 0), 50));
+    // objects.push(new Sphere(createVector(-100, 50, 0), createVector(1, 0, 0), 25));
 
     // // Demo 2 OK
-    // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
-    // objects.push(new Box(createVector(100, 45, 0), createVector(-1, 0, 0), 50));
+    // objects.push(new Box(createVector(100, 100, 0), createVector(-1, 0, 0), 50));
+    // objects.push(new Sphere(createVector(-100, 55, 0), createVector(1, 0, 0), 25));
 
     // // Demo 3 OK
     // objects.push(new Sphere(createVector(-50, -100, 0), createVector(0.5, 0.5, 0), 50));
     // objects.push(new Sphere(createVector(100, 100, 0), createVector(-0.5, -0.5, 0), 50));
 
     // // Demo 4 OK
-    // objects.push(new Box(createVector(-50, -20, 0), createVector(1, 0.3, 0), 50));
-    // objects.push(new Box(createVector(150, 20, 0), createVector(-1, 0, 0), 100));
+    // objects.push(new Box(createVector(50, -20, 0), createVector(-1, 0.3, 0), 50));
+    // objects.push(new Box(createVector(-150, 20, 0), createVector(1, 0, 0), 100));
 
-    // Demo 5 OK
-    objects.push(new Box(createVector(-0, 0, 0), createVector(1, 0, 0), 25));
-    objects.push(new Box(createVector(-250, 0, 0), createVector(1, 0, 0), 25));
-    objects.push(new Box(createVector(-500, 0, 0), createVector(1, 0, 0), 25));
-    objects.push(new Box(createVector(150, 20, 0), createVector(-1, 0, 0), 50));
+    // // Demo 5 OK
+    // objects.push(new Box(createVector(0, 0, 0), createVector(-1, 0, 0), 25));
+    // objects.push(new Box(createVector(250, 0, 0), createVector(-1, 0, 0), 25));
+    // objects.push(new Box(createVector(500, 0, 0), createVector(-1, 0, 0), 25));
+    // objects.push(new Box(createVector(-150, 20, 0), createVector(1, 0, 0), 50));
 
-    // // Demo 6 
-    // objects.push(new Sphere(createVector(-150, 0, 0), createVector(1, 0, 0), 25));
-    // objects.push(new Sphere(createVector(150, 0, 0), createVector(-1, 0, 0), 25));
-    // objects.push(new Sphere(createVector(0, 150, 0), createVector(0, -1, 0), 25));
-    // objects.push(new Sphere(createVector(0, -150, 0), createVector(0, 1, 0), 25));
-
-    
+    // // Demo 6 OK
+    // objects.push(new Plane(createVector(0, 0, 0), createVector(0, 0, 0), 100));
+    // objects.push(new Sphere(createVector(200, 100, 300), createVector(-1, -1, -2), 25));
 
 }
 
@@ -704,7 +700,21 @@ class Box extends Obj {
 
     }
 }
-class Plane     extends Obj {}
+class Plane     extends Obj {
+    constructor(pos, vel, ...args) {
+        super(pos, vel, ...args);
+        this.faceList = [];
+        this.vertexList = [];
+        let x = args[0];
+        let y = args[1 % args.length];
+        this.vertexList.push(createVector(-(x/2), -(y/2), 0)); // 0
+        this.vertexList.push(createVector(-(x/2), +(y/2), 0)); // 1
+        this.vertexList.push(createVector(+(x/2), +(y/2), 0)); // 2
+        this.vertexList.push(createVector(+(x/2), -(y/2), +0)); // 3
+        this.faceList.push([0, 2, 1]);
+        this.faceList.push([0, 3, 2]);
+    }
+}
 class Cylinder  extends Obj {}
 class Cone      extends Obj {}
 class Torus     extends Obj {}
