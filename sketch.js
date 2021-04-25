@@ -21,7 +21,7 @@ function setup() {
     objects.push(new Box(createVector(75, 0, 0), createVector(-1, 0, 0), 50));
 
     // objects.push(new Torus(createVector(200, 0, 0), createVector(0, 0, 0), 30, 1));
-    
+
     console.log(objects[0].constructor === Sphere);  // or instanceof
     console.log(objects[0].constructor === Box);
     console.log(objects[0].constructor === Obj);
@@ -35,10 +35,10 @@ const materials = {
 
 function draw() {
     background(127);
-    
+
     // ambientLight(255);
     directionalLight(127, 127, 127, 0.5774, 0.5774, -0.5774);
-    
+
     // ambientMaterial(255, 0, 0);
     // specularMaterial(materials["BROAD"]);
 
@@ -54,9 +54,9 @@ function draw() {
     //   firstLoop = false;
     // }
 
-  
+
     broadPhase();
-  
+
     //checkIfCollisionSphere();
     //checkIfCollisionBox();
     // checkIfCollisionSphereBox();
@@ -90,7 +90,7 @@ function broadPhase() {
     // for (let k = 0; k < 3; k++) { // for each axis
     //     let active = new Set();
     //     let values = [];  // AABB min and max values
-        
+
     //     for (let i = 0; i < objects.length; i++) {
     //         let obj = objects[i];
     //         values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
@@ -107,7 +107,7 @@ function broadPhase() {
     //         let i = values[l][2];
     //         if(values[l][1] == 'b') {
     //             for(let j of active) {  // only add small index -> large index
-    //                 if(i < j) overlap[i][overlap[i].length - 1].add(j); 
+    //                 if(i < j) overlap[i][overlap[i].length - 1].add(j);
     //                 else overlap[j][overlap[j].length - 1].add(i);
     //             }
     //             active.add(i);
@@ -116,7 +116,7 @@ function broadPhase() {
     //         }
     //     }
     // }
-    
+
     // for (let i = 0; i < objects.length; i++) {
     //     let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
     //     console.log(i);
@@ -243,7 +243,7 @@ function narrowPhase(o1, o2) {
     console.log(o1FaceVertex);
     console.log(o1EdgeVertex);
     console.log(o1CornerVertex);
-   
+
 
    let o2verticeCoords = [];
    for (let j=0;j<o2.vertexList.length;j++){
@@ -407,17 +407,17 @@ class Obj {
         this.colorKey = "NOCOL";
 
         // for collision detection
-        this.vertices = [];  // each element is vertex location as p5.Vector(x, y, z) 
-        this.faces = [];  // each element is 3 indeces in this.vertices as a 3-tuple 
+        this.vertices = [];  // each element is vertex location as p5.Vector(x, y, z)
+        this.faces = [];  // each element is 3 indeces in this.vertices as a 3-tuple
         this.numVertices = 0;
 
         this.position = pos;  // p5.Vector
         this.velocity = vel;  // p5.Vector
         this.args     = args;     // arguments, size or radius, etc.
         let x, y, z, r, h;
-      
+
         switch (this.constructor) {  // AABB size based on shape type
-            case Sphere:    
+            case Sphere:
 
                 r = args[0];
                 this.aabb = r;  // bounding box range: position ± aabb
@@ -501,7 +501,7 @@ class Sphere extends Obj {
         let middle = p5.Vector.add(point1, point2).div(2);  // FIXME
 
         // add vertex makes sure point is on unit sphere
-        let i = this.addVertex(middle); 
+        let i = this.addVertex(middle);
         return i;
      }
 
@@ -511,17 +511,17 @@ class Sphere extends Obj {
         this.addVertex(createVector( 1,  phi,  0));
         this.addVertex(createVector(-1, -phi,  0));
         this.addVertex(createVector( 1, -phi,  0));
-    
+
         this.addVertex(createVector( 0, -1,  phi));
         this.addVertex(createVector( 0,  1,  phi));
         this.addVertex(createVector( 0, -1, -phi));
         this.addVertex(createVector( 0,  1, -phi));
-    
+
         this.addVertex(createVector( phi,  0, -1));
         this.addVertex(createVector( phi,  0,  1));
         this.addVertex(createVector(-phi,  0, -1));
         this.addVertex(createVector(-phi,  0,  1));
-    
+
         // create 20 triangles of the icosahedron
         // 5 faces around point 0
         this.faces.push([0, 11, 5]);
@@ -530,7 +530,7 @@ class Sphere extends Obj {
         this.faces.push([0, 7, 10]);
         this.faces.push([0, 10, 11]);
 
-        // 5 adjacent faces 
+        // 5 adjacent faces
         this.faces.push([1, 5, 9]);
         this.faces.push([5, 11, 4]);
         this.faces.push([11, 10, 2]);
@@ -544,13 +544,13 @@ class Sphere extends Obj {
         this.faces.push([3, 6, 8]);
         this.faces.push([3, 8, 9]);
 
-        // 5 adjacent faces 
+        // 5 adjacent faces
         this.faces.push([4, 9, 5]);
         this.faces.push([2, 4, 11]);
         this.faces.push([6, 2, 10]);
         this.faces.push([8, 6, 7]);
         this.faces.push([9, 8, 1]);
-    
+
         console.log(this.faces.length);
         // refine triangles
         for (let i = 0; i < maxLevel; i++) {
@@ -572,8 +572,8 @@ class Sphere extends Obj {
 
         console.assert(this.faces.length == 20 * Math.pow(4, maxLevel));
 
-        // scale and translate to real sphere  
-        for (let vertex of this.vertices) {  
+        // scale and translate to real sphere
+        for (let vertex of this.vertices) {
             vertex.setMag(this.args[0]);
             vertex.add(this.position);
         }
@@ -582,7 +582,7 @@ class Sphere extends Obj {
         for (let tri of this.faces) {
             // console.log(tri[0] + " " + tri[1] + " " + tri[2]);
             // console.log(this.vertices[tri[0]]);
-            
+
         }
     }
 
@@ -603,7 +603,7 @@ class Sphere extends Obj {
 
     // *** Need to call generateVertices first
     getFaceVertices() {
-        // returns (A + B + C) / 3 for every face 
+        // returns (A + B + C) / 3 for every face
         let faceVertices = [];
         for (let tri of this.faces) {
             let A = this.vertices[tri[0]];
@@ -632,14 +632,14 @@ class Box extends Obj {
         let x = args[0];
         let y = args[1 % args.length];
         let z = args[args.length - 1];
-        this.vertexList.push(createVector(+(x/2), +(y/2), +(z/2)));
-        this.vertexList.push(createVector(+(x/2), +(y/2), -(z/2)));
-        this.vertexList.push(createVector(+(x/2), -(y/2), +(z/2)));
-        this.vertexList.push(createVector(+(x/2), -(y/2), -(z/2)));
-        this.vertexList.push(createVector(-(x/2), +(y/2), +(z/2)));
-        this.vertexList.push(createVector(-(x/2), +(y/2), -(z/2)));
-        this.vertexList.push(createVector(-(x/2), -(y/2), +(z/2)));
-        this.vertexList.push(createVector(-(x/2), -(y/2), -(z/2)));
+        this.vertexList.push(createVector(+(x/2), +(y/2), +(z/2))); // 0
+        this.vertexList.push(createVector(+(x/2), +(y/2), -(z/2))); // 1
+        this.vertexList.push(createVector(+(x/2), -(y/2), +(z/2))); // 2
+        this.vertexList.push(createVector(+(x/2), -(y/2), -(z/2))); // 3
+        this.vertexList.push(createVector(-(x/2), +(y/2), +(z/2))); // 4
+        this.vertexList.push(createVector(-(x/2), +(y/2), -(z/2))); // 5
+        this.vertexList.push(createVector(-(x/2), -(y/2), +(z/2))); // 6
+        this.vertexList.push(createVector(-(x/2), -(y/2), -(z/2))); // 7
         console.log(this.vertexList);
         this.updateFaceList();
     }
@@ -653,33 +653,52 @@ class Box extends Obj {
     //   let face4 = [this.vertexList[7], this.vertexList[6], this.vertexList[3], this.vertexList[2]];
     //   let face5 = [this.vertexList[0], this.vertexList[2], this.vertexList[1], this.vertexList[3]];
     //   let face6 = [this.vertexList[5], this.vertexList[7], this.vertexList[4], this.vertexList[6]];
-      let face1 = [0, 2, 4, 6];
-      let face2 = [5, 7, 1, 3];
-      let face3 = [1, 0, 5, 4];
-      let face4 = [7, 6, 3, 2];
-      let face5 = [0, 2, 1, 3];
-      let face6 = [5, 7, 4, 6];
+      // front
+      let face1 = [0, 4, 2];
+      let face2 = [4, 6, 2];
+      // back
+      let face3 = [5, 1, 3];
+      let face4 = [5, 3, 7];
+      // top
+      let face5 = [4, 1, 0];
+      let face6 = [4, 5, 1];
+      // bottom
+      let face7 = [6, 2, 3];
+      let face8 = [6, 3, 7];
+      // right
+      let face9 = [0, 1, 2];
+      let face10 = [1, 3, 2];
+      // left
+      let face11 = [5, 4, 6];
+      let face12 = [7, 5, 6];
       this.faceList.push(face1);
       this.faceList.push(face2);
       this.faceList.push(face3);
       this.faceList.push(face4);
       this.faceList.push(face5);
       this.faceList.push(face6);
+      this.faceList.push(face7);
+      this.faceList.push(face8);
+      this.faceList.push(face9);
+      this.faceList.push(face10);
+      this.faceList.push(face11);
+      this.faceList.push(face12);
+
     }
 }
 class Plane     extends Obj {}
 class Cylinder  extends Obj {}
 class Cone      extends Obj {}
 class Torus     extends Obj {}
-  
+
 // http://blog.andreaskahler.com/2009/06/creating-icosphere-mesh-in-code.html?m=1
 const phi = (1.0 + Math.sqrt(5.0)) / 2.0;
 
 // class IcosahedronSphereGenerator {
 //     // create 12 vertices of a icosahedron
 //     constructor(level) {
-//         this.vertices = [];  // each element is vertex location as p5.Vector(x, y, z) 
-//         this.faces = [];  // each element is 3 indeces in this.vertices as a 3-tuple 
+//         this.vertices = [];  // each element is vertex location as p5.Vector(x, y, z)
+//         this.faces = [];  // each element is 3 indeces in this.vertices as a 3-tuple
 //         this.index = 0;
 //     }
 
@@ -699,7 +718,7 @@ const phi = (1.0 + Math.sqrt(5.0)) / 2.0;
 //         let middle = p5.Vector.add(point1, point2).div(2);  // FIXME
 
 //         // add vertex makes sure point is on unit sphere
-//         let i = this.addVertex(middle); 
+//         let i = this.addVertex(middle);
 //         return i;
 //      }
 
@@ -709,17 +728,17 @@ const phi = (1.0 + Math.sqrt(5.0)) / 2.0;
 //         this.addVertex(createVector( 1,  phi,  0));
 //         this.addVertex(createVector(-1, -phi,  0));
 //         this.addVertex(createVector( 1, -phi,  0));
-    
+
 //         this.addVertex(createVector( 0, -1,  phi));
 //         this.addVertex(createVector( 0,  1,  phi));
 //         this.addVertex(createVector( 0, -1, -phi));
 //         this.addVertex(createVector( 0,  1, -phi));
-    
+
 //         this.addVertex(createVector( phi,  0, -1));
 //         this.addVertex(createVector( phi,  0,  1));
 //         this.addVertex(createVector(-phi,  0, -1));
 //         this.addVertex(createVector(-phi,  0,  1));
-    
+
 //         // create 20 triangles of the icosahedron
 //         // 5 faces around point 0
 //         this.faces.push([0, 11, 5]);
@@ -728,7 +747,7 @@ const phi = (1.0 + Math.sqrt(5.0)) / 2.0;
 //         this.faces.push([0, 7, 10]);
 //         this.faces.push([0, 10, 11]);
 
-//         // 5 adjacent faces 
+//         // 5 adjacent faces
 //         this.faces.push([1, 5, 9]);
 //         this.faces.push([5, 11, 4]);
 //         this.faces.push([11, 10, 2]);
@@ -742,13 +761,13 @@ const phi = (1.0 + Math.sqrt(5.0)) / 2.0;
 //         this.faces.push([3, 6, 8]);
 //         this.faces.push([3, 8, 9]);
 
-//         // 5 adjacent faces 
+//         // 5 adjacent faces
 //         this.faces.push([4, 9, 5]);
 //         this.faces.push([2, 4, 11]);
 //         this.faces.push([6, 2, 10]);
 //         this.faces.push([8, 6, 7]);
 //         this.faces.push([9, 8, 1]);
-    
+
 //         // refine triangles
 //         for (let i = 0; i < maxLevel; i++) {
 //             var faces2 = [];
@@ -773,9 +792,9 @@ const phi = (1.0 + Math.sqrt(5.0)) / 2.0;
 //         for (let tri of this.faces) {
 //             // console.log(tri[0] + " " + tri[1] + " " + tri[2]);
 //             console.log(this.vertices[tri[0]]);
-            
+
 //         }
-        
+
 
 //     }
 // }
