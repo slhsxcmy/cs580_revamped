@@ -9,7 +9,7 @@ function setup() {
     noStroke();
     ambientMaterial(255);
 
-
+    
     // // Demo 1 OK
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     // objects.push(new Box(createVector(100, 50, 0), createVector(-1, 0, 0), 50));
@@ -83,64 +83,67 @@ function broadPhase() {
         obj.colorKey = "NOCOL";
     }
 
-    // Naive method O(n^2)
-    for (let i = 0; i < objects.length; ++i) {
-        for (let j = i + 1; j < objects.length; ++j) {
-            let o1 = objects[i];
-            let o2 = objects[j];
-            let dist = p5.Vector.sub(o1.position, o2.position).mag();
-            if(dist <= o1.aabb + o2.aabb) {
-                o1.colorKey = o2.colorKey = "BROAD";
-                narrowPhase(o1, o2);
-            }
-        }
-    }
-
-    // // FIXME: AABB Sort and Sweep O(nlogn)
-    // let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
-    // for (let i = 0; i < objects.length; i++) {
-    //     overlap.push([]);
-    // }
-
-    // for (let k = 0; k < 3; k++) { // for each axis
-    //     let active = new Set();
-    //     let values = [];  // AABB min and max values
-
-    //     for (let i = 0; i < objects.length; i++) {
-    //         let obj = objects[i];
-    //         values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
-    //         values.push([obj.position.array()[k] + obj.aabb, 'e', i]);  // max (end)
-    //     }
-    //     values.sort((a, b) => a[0] - b[0]);  // sort by values[0]
-
-
-    //     for (let i = 0; i < objects.length; i++) {  // initialize sets in overlap
-    //         overlap[i].push(new Set());
-    //     }
-
-    //     for (let l = 0; l < values.length; l++) {
-    //         let i = values[l][2];
-    //         if(values[l][1] == 'b') {
-    //             for(let j of active) {  // only add small index -> large index
-    //                 if(i < j) overlap[i][overlap[i].length - 1].add(j);
-    //                 else overlap[j][overlap[j].length - 1].add(i);
-    //             }
-    //             active.add(i);
-    //         } else {
-    //             active.delete(i);
+    // // Naive method O(n^2)
+    // for (let i = 0; i < objects.length; ++i) {
+    //     for (let j = i + 1; j < objects.length; ++j) {
+    //         let o1 = objects[i];
+    //         let o2 = objects[j];
+    //         let dist = p5.Vector.sub(o1.position, o2.position).mag();
+    //         if(dist <= o1.aabb + o2.aabb) {
+    //             o1.colorKey = o2.colorKey = "BROAD";
+    //             narrowPhase(o1, o2);
     //         }
     //     }
     // }
 
-    // for (let i = 0; i < objects.length; i++) {
-    //     let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
-    //     console.log(i);
-    //     console.log(intersection);
-    //     for(let j in intersection) {  // i and j might collide
-    //         objects[i].colorKey = objects[j].colorKey = "BROAD";
-    //         narrowPhase(objects[i], objects[j]);
-    //     }
-    // }
+    // FIXME: AABB Sort and Sweep O(nlogn)
+    let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
+    for (let i = 0; i < objects.length; i++) {
+        overlap.push([]);
+    }
+
+    for (let k = 0; k < 3; k++) { // for each axis
+        let active = new Set();
+        let values = [];  // AABB min and max values
+
+        for (let i = 0; i < objects.length; i++) {
+            let obj = objects[i];
+            values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
+            values.push([obj.position.array()[k] + obj.aabb, 'e', i]);  // max (end)
+        }
+        values.sort((a, b) => a[0] - b[0]);  // sort by values[0]
+
+
+        for (let i = 0; i < objects.length; i++) {  // initialize sets in overlap
+            overlap[i].push(new Set());
+        }
+
+        for (let l = 0; l < values.length; l++) {
+            let i = values[l][2];
+            if(values[l][1] == 'b') {
+                for(let j of active) {  // only add small index -> large index
+                    // if(i < j) 
+                        overlap[i][overlap[i].length - 1].add(j);
+                    // else 
+                        overlap[j][overlap[j].length - 1].add(i);
+                }
+                active.add(i);
+            } else {
+                active.delete(i);
+            }
+        }
+    }
+
+    for (let i = 0; i < objects.length; i++) {
+        let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
+        // console.log(i);
+        // console.log(intersection);
+        for(let j of intersection) {  // i and j might collide
+            // console.log("objects[i].colorKey = objects[j].colorKey = \"BROAD\";");
+            objects[i].colorKey = objects[j].colorKey = "BROAD";
+            narrowPhase(objects[i], objects[j]);
+        }
+    }
 }
 
 
