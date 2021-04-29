@@ -14,6 +14,7 @@ function setup() {
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     // objects.push(new Box(createVector(100, 50, 0), createVector(-1, 0, 0), 50));
     camera((width/2.0), (-height/2.0), (height/2.0) / tan(PI*30.0 / 180.0), 0, 0, 0, 0, 1, 0);
+    // camera(200, 200, (height/2.0) / tan(PI*30.0 / 180.0), 0, 0, 0, 0, 1, 0);
 
     // // Demo 1: Box - Sphere Broad Phase
     // objects.push(new Box(createVector(100, 100, 0), createVector(-1, 0, 0), 50));
@@ -65,7 +66,12 @@ function draw() {
     directionalLight(127, 127, 127, 0.5774, 0.5774, -0.5774);
 
     specularMaterial(127, 0, 0);
-    sphere(50);
+    push();
+    rotateX(PI/4);
+    rotateY(PI/4);
+    rotateZ(0.8);
+    box(57.735026919);
+    pop();
 
     // specularMaterial(127, 0, 0);
     // box(100);
