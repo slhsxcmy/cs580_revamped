@@ -13,6 +13,15 @@ function setup() {
     // // Demo 1 OK
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
     // objects.push(new Box(createVector(100, 50, 0), createVector(-1, 0, 0), 50));
+    camera((width/2.0), (-height/2.0), (height/2.0) / tan(PI*30.0 / 180.0), 0, 0, 0, 0, 1, 0);
+
+    // // Demo 1: Box - Sphere Broad Phase
+    // objects.push(new Box(createVector(100, 100, 0), createVector(-1, 0, 0), 50));
+    // objects.push(new Sphere(createVector(-100, 50, 0), createVector(1, 0, 0), 25));
+
+    // // Demo 2: Box - Sphere Narrow Phase
+    // objects.push(new Box(createVector(100, 100, 0), createVector(-1, 0, 0), 50));
+    // objects.push(new Sphere(createVector(-100, 55, 0), createVector(1, 0, 0), 25));
 
     // // Demo 2 OK
     // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
@@ -26,11 +35,11 @@ function setup() {
     // objects.push(new Box(createVector(-50, -20, 0), createVector(1, 0.3, 0), 50));
     // objects.push(new Box(createVector(150, 20, 0), createVector(-1, 0, 0), 100));
 
-    // Demo 5 OK
-    // objects.push(new Box(createVector(-0, 0, 0), createVector(1, 0, 0), 25));
-    // objects.push(new Box(createVector(-250, 0, 0), createVector(1, 0, 0), 25));
-    objects.push(new Box(createVector(-500, 0, 0), createVector(1, 0, 0), 25));
-    objects.push(new Box(createVector(150, 20, 0), createVector(-1, 0, 0), 50));
+    // // Demo 5 OK
+    // // objects.push(new Box(createVector(-0, 0, 0), createVector(1, 0, 0), 25));
+    // // objects.push(new Box(createVector(-250, 0, 0), createVector(1, 0, 0), 25));
+    // objects.push(new Box(createVector(-500, 0, 0), createVector(1, 0, 0), 25));
+    // objects.push(new Box(createVector(150, 20, 0), createVector(-1, 0, 0), 50));
 
     // // Demo 6 
     // objects.push(new Sphere(createVector(-150, 0, 0), createVector(1, 0, 0), 25));
@@ -51,10 +60,23 @@ const materials = {
 function draw() {
     background(127);
 
-    // ambientLight(255);
+
+    ambientLight(255);
     directionalLight(127, 127, 127, 0.5774, 0.5774, -0.5774);
 
-    // ambientMaterial(255, 0, 0);
+    specularMaterial(127, 0, 0);
+    sphere(50);
+
+    // specularMaterial(127, 0, 0);
+    // box(100);
+    noStroke();
+    let c = color(0, 126, 255, 102);
+    fill(c);
+    // rect(15, 15, 35, 70);
+    // let value = alpha(c); // Sets 'value' to 102
+    // fill(value);
+    box(100);
+
     // specularMaterial(materials["BROAD"]);
 
     for (obj of objects) {
@@ -96,7 +118,7 @@ function broadPhase() {
     //     }
     // }
 
-    // FIXME: AABB Sort and Sweep O(nlogn)
+    // AABB Sort and Sweep O(nlogn)
     let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
     for (let i = 0; i < objects.length; i++) {
         overlap.push([]);
