@@ -5,26 +5,39 @@ firstLoop = true;
 
 function setup() {
     createCanvas(windowWidth, windowHeight, WEBGL);
-
+    
     noStroke();
     ambientMaterial(255);
+    camera((width/2.0), 0, (height/2.0) / tan(PI*30.0 / 180.0), 0, 0, 0, 0, 1, 0);
 
-    // console.log(materials);
+    // // Demo 1: Broad Phase
+    // objects.push(new Box(createVector(100, 100, 0), createVector(-1, 0, 0), 50));
+    // objects.push(new Sphere(createVector(-100, 50, 0), createVector(1, 0, 0), 25));
 
-    // TODO: create vertexList for Sphere
-    objects.push(new Sphere(createVector(-100, 0, 0), createVector(0, 0, 0), 25));
-    // objects[0].generateVertices();
-    // objects.push(new Sphere(createVector(-100, 0, 0), createVector(1, 0, 0), 25));
-    //objects.push(new Sphere(createVector(100, 0, 0), createVector(0, 0, 0), 25));
+    // // Demo 2: Box - Sphere
+    // objects.push(new Box(createVector(100, 100, 0), createVector(-1, 0, 0), 50));
+    // objects.push(new Sphere(createVector(-100, 55, 0), createVector(1, 0, 0), 25));
 
-    //objects.push(new Box(createVector(100, 0, 100), createVector(0, 0, -1), 25));
-    objects.push(new Box(createVector(75, -125, 0), createVector(-1, 1, 0), 50));
+    // // Demo 3: Sphere - Sphere
+    // objects.push(new Sphere(createVector(-50, -100, 0), createVector(0.5, 0.5, 0), 50));
+    // objects.push(new Sphere(createVector(100, 100, 0), createVector(-0.5, -0.5, 0), 50));
 
-    // objects.push(new Torus(createVector(200, 0, 0), createVector(0, 0, 0), 30, 1));
+    // // Demo 4: Box - Box
+    // objects.push(new Box(createVector(50, -40, 0), createVector(-1, 0.3, 0), 50));
+    // objects.push(new Box(createVector(-150, 20, 0), createVector(1, 0, 0), 100));
 
-    console.log(objects[0].constructor === Sphere);  // or instanceof
-    console.log(objects[0].constructor === Box);
-    console.log(objects[0].constructor === Obj);
+    // // Demo 5: Multi-object
+    // objects.push(new Sphere(createVector(0, 0, 0), createVector(-1, 0, 0), 25));
+    // objects.push(new Box(createVector(250, 0, 0), createVector(-1, 0, 0), 25));
+    // objects.push(new Sphere(createVector(500, 0, 0), createVector(-1, 0, 0), 25));
+    // objects.push(new Box(createVector(-150, 20, 0), createVector(1, 0, 0), 50));
+
+    // // Demo 6: Plane 
+    // objects.push(new Plane(createVector(0, 0, 0), createVector(0, 0, 0), 100));
+    // objects.push(new Sphere(createVector(200, 100, 300), createVector(-1, -1, -2), 25));
+    // objects.push(new Box(createVector(300, 200, 600), createVector(-1, -1, -2), 50));
+    // objects.push(new Box(createVector(400, 400, 900), createVector(-1, -1, -2), 50));
+
 }
 
 const materials = {
@@ -68,64 +81,67 @@ function broadPhase() {
         obj.colorKey = "NOCOL";
     }
 
-    // Naive method O(n^2)
-    for (let i = 0; i < objects.length; ++i) {
-        for (let j = i + 1; j < objects.length; ++j) {
-            let o1 = objects[i];
-            let o2 = objects[j];
-            let dist = p5.Vector.sub(o1.position, o2.position).mag();
-            if(dist <= o1.aabb + o2.aabb) {
-                o1.colorKey = o2.colorKey = "BROAD";
-                narrowPhase(o1, o2);
-            }
-        }
-    }
-
-    // // FIXME: AABB Sort and Sweep O(nlogn)
-    // let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
-    // for (let i = 0; i < objects.length; i++) {
-    //     overlap.push([]);
-    // }
-
-    // for (let k = 0; k < 3; k++) { // for each axis
-    //     let active = new Set();
-    //     let values = [];  // AABB min and max values
-
-    //     for (let i = 0; i < objects.length; i++) {
-    //         let obj = objects[i];
-    //         values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
-    //         values.push([obj.position.array()[k] + obj.aabb, 'e', i]);  // max (end)
-    //     }
-    //     values.sort((a, b) => a[0] - b[0]);  // sort by values[0]
-
-
-    //     for (let i = 0; i < objects.length; i++) {  // initialize sets in overlap
-    //         overlap[i].push(new Set());
-    //     }
-
-    //     for (let l = 0; l < values.length; l++) {
-    //         let i = values[l][2];
-    //         if(values[l][1] == 'b') {
-    //             for(let j of active) {  // only add small index -> large index
-    //                 if(i < j) overlap[i][overlap[i].length - 1].add(j);
-    //                 else overlap[j][overlap[j].length - 1].add(i);
-    //             }
-    //             active.add(i);
-    //         } else {
-    //             active.delete(i);
+    // // Naive method O(n^2)
+    // for (let i = 0; i < objects.length; ++i) {
+    //     for (let j = i + 1; j < objects.length; ++j) {
+    //         let o1 = objects[i];
+    //         let o2 = objects[j];
+    //         let dist = p5.Vector.sub(o1.position, o2.position).mag();
+    //         if(dist <= o1.aabb + o2.aabb) {
+    //             o1.colorKey = o2.colorKey = "BROAD";
+    //             narrowPhase(o1, o2);
     //         }
     //     }
     // }
 
-    // for (let i = 0; i < objects.length; i++) {
-    //     let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
-    //     console.log(i);
-    //     console.log(intersection);
-    //     for(let j in intersection) {  // i and j might collide
-    //         objects[i].colorKey = objects[j].colorKey = "BROAD";
-    //         narrowPhase(objects[i], objects[j]);
-    //     }
-    // }
+    // FIXME: AABB Sort and Sweep O(nlogn)
+    let overlap = [];//[...Array(objects.length)];  // set of overlapping aabbs on 3 axis
+    for (let i = 0; i < objects.length; i++) {
+        overlap.push([]);
+    }
+
+    for (let k = 0; k < 3; k++) { // for each axis
+        let active = new Set();
+        let values = [];  // AABB min and max values
+
+        for (let i = 0; i < objects.length; i++) {
+            let obj = objects[i];
+            values.push([obj.position.array()[k] - obj.aabb, 'b', i]);  // min (begin)
+            values.push([obj.position.array()[k] + obj.aabb, 'e', i]);  // max (end)
+        }
+        values.sort((a, b) => a[0] - b[0]);  // sort by values[0]
+
+
+        for (let i = 0; i < objects.length; i++) {  // initialize sets in overlap
+            overlap[i].push(new Set());
+        }
+
+        for (let l = 0; l < values.length; l++) {
+            let i = values[l][2];
+            if(values[l][1] == 'b') {
+                for(let j of active) {  // only add small index -> large index
+                    // if(i < j) 
+                        overlap[i][overlap[i].length - 1].add(j);
+                    // else 
+                        overlap[j][overlap[j].length - 1].add(i);
+                }
+                active.add(i);
+            } else {
+                active.delete(i);
+            }
+        }
+    }
+
+    for (let i = 0; i < objects.length; i++) {
+        let intersection = new Set([...overlap[i][0]].filter(x => overlap[i][1].has(x) && overlap[i][2].has(x)))  // 3-set intersection
+        // console.log(i);
+        // console.log(intersection);
+        for(let j of intersection) {  // i and j might collide
+            // console.log("objects[i].colorKey = objects[j].colorKey = \"BROAD\";");
+            objects[i].colorKey = objects[j].colorKey = "BROAD";
+            narrowPhase(objects[i], objects[j]);
+        }
+    }
 }
 
 
@@ -254,7 +270,7 @@ function narrowPhase(o1, o2) {
     // console.log(o1FaceNormals);
     // console.log(o1EdgeVectors);
     // console.log(o1CornerVectors);
-//     console.log(o1FaceVertex);
+    // console.log(o1FaceVertex);
     // console.log(o1EdgeVertex);
     // console.log(o1CornerVertex);
   
@@ -270,7 +286,7 @@ function narrowPhase(o1, o2) {
 //    console.log(o1FaceNormals.length);
    for (let i=0;i<o1FaceNormals.length;i++)
    {
-        console.log("i: " + i);
+        // console.log("i: " + i);
         let allVerticesInFrontOfFace = true;
         for (let j=0;j<o2.vertexList.length;j++)
         {
@@ -281,19 +297,19 @@ function narrowPhase(o1, o2) {
                 allVerticesInFrontOfFace = false;
                 break;
             }
-            if (i==5)
+            if (i==10)
             {
                 console.log(p5.Vector.sub(o2verticeCoords[j]));
                 console.log(p5.Vector.sub(o1FaceVertex[i]));
-                // console.log(p5.Vector.sub(o2verticeCoords[j], o1FaceVertex[i]));
-                // console.log(o1FaceNormals[i]);
+                console.log(p5.Vector.sub(o2verticeCoords[j], o1FaceVertex[i]));
+                console.log(o1FaceNormals[i]);
                 console.log("dot: " + currentVal);
             }
         }
         // console.log(allVerticesInFrontOfFace);
         if (allVerticesInFrontOfFace)
         {
-            console.log("hit");
+            // console.log("hit");
             overlapping = false;
             break;
         } 
@@ -351,12 +367,12 @@ function narrowPhase(o1, o2) {
    if (overlapping)
    {
       o1.colorKey = o2.colorKey = "NARROW";
-      console.log("overlapping");
+    //   console.log("overlapping");
       return true;
    }
    else
    {
-      console.log("not overlapping");
+    //   console.log("not overlapping");
       return false;
    }
 }
@@ -545,9 +561,6 @@ class Sphere extends Obj {
         this.faceList.push([0, 1, 7]);
         this.faceList.push([0, 7, 10]);
         this.faceList.push([0, 10, 11]);
-
-
-      
       
         // 5 adjacent faces 
         this.faceList.push([1, 5, 9]);
@@ -661,62 +674,70 @@ class Box extends Obj {
         let x = args[0];
         let y = args[1 % args.length];
         let z = args[args.length - 1];
-        this.vertexList.push(createVector(+(x/2), +(y/2), +(z/2))); // 0
-        this.vertexList.push(createVector(+(x/2), +(y/2), -(z/2))); // 1
-        this.vertexList.push(createVector(+(x/2), -(y/2), +(z/2))); // 2
-        this.vertexList.push(createVector(+(x/2), -(y/2), -(z/2))); // 3
-        this.vertexList.push(createVector(-(x/2), +(y/2), +(z/2))); // 4
-        this.vertexList.push(createVector(-(x/2), +(y/2), -(z/2))); // 5
-        this.vertexList.push(createVector(-(x/2), -(y/2), +(z/2))); // 6
+        
+        this.vertexList.push(createVector(-(x/2), -(y/2), +(z/2))); // 0
+        this.vertexList.push(createVector(-(x/2), +(y/2), +(z/2))); // 1
+        this.vertexList.push(createVector(+(x/2), +(y/2), +(z/2))); // 2
+        this.vertexList.push(createVector(+(x/2), -(y/2), +(z/2))); // 3
+        this.vertexList.push(createVector(+(x/2), -(y/2), -(z/2))); // 4
+        this.vertexList.push(createVector(+(x/2), +(y/2), -(z/2))); // 5
+        this.vertexList.push(createVector(-(x/2), +(y/2), -(z/2))); // 6
         this.vertexList.push(createVector(-(x/2), -(y/2), -(z/2))); // 7
         console.log(this.vertexList);
         this.updateFaceList();
     }
 
     updateFaceList()
-    {
-    //   this.faceList = [];
-    //   let face1 = [this.vertexList[0], this.vertexList[2], this.vertexList[4], this.vertexList[6]];
-    //   let face2 = [this.vertexList[5], this.vertexList[7], this.vertexList[1], this.vertexList[3]];
-    //   let face3 = [this.vertexList[1], this.vertexList[0], this.vertexList[5], this.vertexList[4]];
-    //   let face4 = [this.vertexList[7], this.vertexList[6], this.vertexList[3], this.vertexList[2]];
-    //   let face5 = [this.vertexList[0], this.vertexList[2], this.vertexList[1], this.vertexList[3]];
-    //   let face6 = [this.vertexList[5], this.vertexList[7], this.vertexList[4], this.vertexList[6]];
-      // front
-      let face1 = [0, 4, 2];
-      let face2 = [4, 6, 2];
-      // back
-      let face3 = [5, 1, 3];
-      let face4 = [5, 3, 7];
-      // top
-      let face5 = [4, 1, 0];
-      let face6 = [4, 5, 1];
-      // bottom
-      let face7 = [6, 2, 3];
-      let face8 = [6, 3, 7];
-      // right
-      let face9 = [0, 1, 2];
-      let face10 = [1, 3, 2];
-      // left
-      let face11 = [5, 4, 6];
-      let face12 = [7, 5, 6];
-      this.faceList.push(face1);
-      this.faceList.push(face2);
-      this.faceList.push(face3);
-      this.faceList.push(face4);
-      this.faceList.push(face5);
-      this.faceList.push(face6);
-      this.faceList.push(face7);
-      this.faceList.push(face8);
-      this.faceList.push(face9);
-      this.faceList.push(face10);
-      this.faceList.push(face11);
-      this.faceList.push(face12);
+    {    
+    // http://ilkinulas.github.io/development/unity/2016/04/30/cube-mesh-in-unity3d.html flipped by x = y
+      this.faceList.push([0, 2, 1]);
+      this.faceList.push([0, 3, 2]);
+      this.faceList.push([2, 3, 4]);
+      this.faceList.push([2, 4, 5]);
+      this.faceList.push([1, 2, 5]);
+      this.faceList.push([1, 5, 6]);
+      this.faceList.push([0, 7, 4]);
+      this.faceList.push([0, 4, 3]);
+      this.faceList.push([5, 4, 7]);
+      this.faceList.push([5, 7, 6]);
+      this.faceList.push([0, 6, 7]);
+      this.faceList.push([0, 1, 6]);
 
     }
 }
-class Plane     extends Obj {}
-class Cylinder  extends Obj {}
+class Plane     extends Obj {
+    constructor(pos, vel, ...args) {
+        super(pos, vel, ...args);
+        this.faceList = [];
+        this.vertexList = [];
+        let x = args[0];
+        let y = args[1 % args.length];
+        this.vertexList.push(createVector(-(x/2), -(y/2), 0)); // 0
+        this.vertexList.push(createVector(-(x/2), +(y/2), 0)); // 1
+        this.vertexList.push(createVector(+(x/2), +(y/2), 0)); // 2
+        this.vertexList.push(createVector(+(x/2), -(y/2), 0)); // 3
+        this.faceList.push([0, 2, 1]);
+        this.faceList.push([0, 3, 2]);
+    }
+}
+class Cylinder  extends Obj {
+    constructor(pos, vel, ...args) {
+        super(pos, vel, ...args);
+        this.faceList = [];
+        this.vertexList = [];
+        let r = args[0];
+        let h = args[1 % args.length];
+        for(let i = 0; i < 8; ++i) {
+            this.vertexList.push(createVector(r * Math.cos(i * Math.PI / 4), -h / 2, r * Math.sin(i * Math.PI / 4))); // 0
+        }
+        for(let i = 0; i < 8; ++i) {
+            this.vertexList.push(createVector(r * Math.cos(i * Math.PI / 4), h / 2, r * Math.sin(i * Math.PI / 4))); // 0
+        }
+        console.log(this.vertexList);
+        // this.faceList.push([0, 2, 1]);
+        // this.faceList.push([0, 3, 2]);
+    }
+}
 class Cone      extends Obj {}
 class Torus     extends Obj {}
 
