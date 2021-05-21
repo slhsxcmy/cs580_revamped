@@ -10,9 +10,9 @@ function setup() {
     ambientMaterial(255);
     camera((width/2.0), 0, (height/2.0) / tan(PI*30.0 / 180.0), 0, 0, 0, 0, 1, 0);
 
-    // // Demo 1: Broad Phase
-    // objects.push(new Box(createVector(100, 100, 0), createVector(-1, 0, 0), 50));
-    // objects.push(new Sphere(createVector(-100, 50, 0), createVector(1, 0, 0), 25));
+    // Demo 1: Broad Phase
+    objects.push(new Box(createVector(100, 100, 0), createVector(-1, 0, 0), 50));
+    objects.push(new Sphere(createVector(-100, 50, 0), createVector(1, 0, 0), 25));
 
     // // Demo 2: Box - Sphere
     // objects.push(new Box(createVector(100, 100, 0), createVector(-1, 0, 0), 50));
