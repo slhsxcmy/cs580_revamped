@@ -1,6 +1,6 @@
 **3D Collision Detection**
 
-Contributors Names: 	Mingyu Cui, Victor Da Silva
+Contributor Names: 	Mingyu Cui, Victor Da Silva
 
 Contributor Emails: 	[mingyucu@usc.edu](mailto:mingyucu@usc.edu), [vdasilva@usc.edu](mailto:vdasilva@usc.edu) 
 
