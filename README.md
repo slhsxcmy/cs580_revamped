@@ -36,7 +36,7 @@ We split up the collision detection of all objects into two phases: the Broad Ph
 
 **5. The Broad Phase**
 
-	To implement the Broad Phase, we first added a helpful field in each object: the size of the axis-aligned bounding box (AABB) [3]. We made the AABB large enough so that although the AABBs are not tightly bounding the objects so the Broad Phase might call the Narrow Phase more than needed, they do not need to be recalculated every frame. This way, the AABB is simply treated as a large-enough Cube encapsulating each object. For example, the AABB bounds a Sphere at its radius; for a Box, the size of the AABB is the diagonal of the Box so that no matter how the Box rotates, the AABB will always encapsulate the Box.
+To implement the Broad Phase, we first added a helpful field in each object: the size of the axis-aligned bounding box (AABB) [3]. We made the AABB large enough so that although the AABBs are not tightly bounding the objects so the Broad Phase might call the Narrow Phase more than needed, they do not need to be recalculated every frame. This way, the AABB is simply treated as a large-enough Cube encapsulating each object. For example, the AABB bounds a Sphere at its radius; for a Box, the size of the AABB is the diagonal of the Box so that no matter how the Box rotates, the AABB will always encapsulate the Box.
 
 ![image alt text](images/image_1.png)![image alt text](images/image_2.png)
 
@@ -60,7 +60,7 @@ One main point to note is that many of the algorithms that handle the Narrow Pha
 
 * Red: certainly not colliding. 
 
-![image alt text](images/image_4.png)** **
+![image alt text](images/image_4.png)
 
 * Green: might be colliding.
 
